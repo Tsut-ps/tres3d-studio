@@ -8,13 +8,17 @@ createApp(App).mount('#app')
 if (new URLSearchParams(location.search).has('debug')) {
   Promise.all([
     import('./store'),
+    import('./doc'),
+    import('./history'),
     import('./schema'),
     import('./codegen'),
     import('./align'),
     import('./sceneHandle'),
-  ]).then(([store, schema, codegen, align, handle]) => {
+  ]).then(([store, docModel, history, schema, codegen, align, handle]) => {
     ;(window as any).__app = {
       ...store,
+      ...docModel,
+      ...history,
       ...schema,
       generate: codegen.generate,
       align,

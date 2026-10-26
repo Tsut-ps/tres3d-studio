@@ -2,19 +2,8 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { REG, BEHAVIOR_HOSTS } from '../schema'
 import { iconOf } from '../icons'
-import {
-  ui,
-  removeNode,
-  duplicateNode,
-  setProp,
-  isSelected,
-  selectBlock,
-  nameOf,
-  canRename,
-  renameNode,
-  type BNode,
-  type Slot,
-} from '../store'
+import { ui, removeNode, duplicateNode, isSelected, selectBlock } from '../store'
+import { setProp, nameOf, canRename, renameNode, type BNode, type Slot } from '../doc'
 import { val } from '../SceneNode'
 import PropEditor from './PropEditor.vue'
 import DropZone from './DropZone.vue'

@@ -11,7 +11,8 @@ import {
 } from 'vue'
 import { useLoop } from '@tresjs/core'
 import { REG, type BlockDef } from './schema'
-import { ui, revealNode, type BNode } from './store'
+import { ui, revealNode } from './store'
+import { type BNode } from './doc'
 import { makeTexture, type TexDesc } from './textures'
 import { SafeSoftShadows } from './previewOnly'
 

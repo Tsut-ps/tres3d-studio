@@ -1,5 +1,4 @@
-import { newNode, type BNode } from './store'
-
+import { newNode, type BNode } from './doc'
 type Parts = { geometry?: BNode; material?: BNode; children?: BNode[]; behaviors?: BNode[] }
 const N = (def: string, props: Record<string, any> = {}, parts: Parts = {}): BNode =>
   Object.assign(newNode(def, props, false), parts)

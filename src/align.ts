@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { find, flash, propDefOf, setProp, topSelection, ui, type BNode } from './store'
+import { flash, topSelection, ui } from './store'
+import { find, propDefOf, setProp, type BNode } from './doc'
 import { REG } from './schema'
 import { sceneHandle } from './sceneHandle'
 

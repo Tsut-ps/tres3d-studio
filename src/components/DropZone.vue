@@ -1,18 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { REG } from '../schema'
-import {
-  addFromPalette,
-  canDrop,
-  find,
-  isDescendant,
-  moveNode,
-  startAdd,
-  ui,
-  type BNode,
-  type Slot,
-} from '../store'
-
+import { addFromPalette, moveNode, startAdd, ui } from '../store'
+import { canDrop, find, isDescendant, type BNode, type Slot } from '../doc'
 const props = defineProps<{
   parent: BNode | null
   at: Slot

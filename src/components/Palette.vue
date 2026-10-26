@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { CATS, REG, defsOfCat, type BlockDef } from '../schema'
-import { addFromPalette, addTarget, canDrop, clearAdd, nameOf, ui } from '../store'
+import { addFromPalette, addTarget, clearAdd, ui } from '../store'
+import { canDrop, nameOf } from '../doc'
 import Ico from './Ico.vue'
 import { CAT_ICON, iconOf } from '../icons'
 

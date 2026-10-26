@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { addFromPalette, doc, flash, ui, walk } from '../store'
+import { addFromPalette, flash, ui } from '../store'
+import { doc, walk } from '../doc'
 import { REG } from '../schema'
 import Ico from './Ico.vue'
 

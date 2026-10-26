@@ -11,25 +11,18 @@ import Ico from './components/Ico.vue'
 import { SAMPLES } from './samples'
 import ContextMenu from './components/ContextMenu.vue'
 import {
-  canRedo,
-  canUndo,
-  canRename,
   copySelected,
-  doc,
   duplicateSelected,
-  find,
-  initStore,
   pasteClip,
   clearAdd,
-  redo,
   removeSelected,
-  resetDoc,
   selectBlock,
   ui,
-  undo,
   flash,
   visibleOrder,
 } from './store'
+import { canRename, doc, find } from './doc'
+import { canRedo, canUndo, initStore, redo, resetDoc, undo } from './history'
 import { BEHAVIOR_HOSTS, REG } from './schema'
 import { setTextureLoadedHandler } from './textures'
 import { layout, LIMITS, resetLayout } from './layout'
@@ -66,6 +59,8 @@ watch(
 )
 
 // 重いシーンは、組み立て・シェーダーの準備で一瞬止まることがある。先にメニューを閉じて「読み込み中」を描いてから切り替える
+const LOADING_PAINT_MS = 120 // 「読み込み中」を描くために待つ上限
+const LOADING_MAX_MS = 8000 // 描画の合図が来なくても、表示を消すまでの時間
 let busyTimer: any
 async function loadSample(i: number) {
   const s = SAMPLES[i]
@@ -73,14 +68,14 @@ async function loadSample(i: number) {
   ui.busy = `「${s.label}」を読み込み中…`
   await Promise.race([
     new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
-    new Promise((r) => setTimeout(r, 120)),
+    new Promise((r) => setTimeout(r, LOADING_PAINT_MS)),
   ])
   resetDoc(s.build())
   flash(`「${s.label}」を読み込みました`)
   clearTimeout(busyTimer)
   busyTimer = setTimeout(() => {
     ui.busy = ''
-  }, 8000) // 描画の合図が来なくても、表示は必ず消す
+  }, LOADING_MAX_MS) // 描画の合図が来なくても、表示は必ず消す
 }
 
 const typing = (t: EventTarget | null) =>

@@ -2,7 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { generate, type Mark } from '../codegen'
 import { REG } from '../schema'
-import { find, flash, nameOf, revealNode, ui } from '../store'
+import { flash, revealNode, ui } from '../store'
+import { find, nameOf } from '../doc'
 import { layout } from '../layout'
 import Ico from './Ico.vue'
 

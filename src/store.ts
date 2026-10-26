@@ -1,37 +1,20 @@
 import { reactive, watch } from 'vue'
+import { REG, type BlockDef, type CatId } from './schema'
 import {
-  REG,
-  CANVAS_PROPS,
-  BEHAVIOR_HOSTS,
-  type BlockDef,
-  type CatId,
-  type Kind,
-  type PropDef,
-} from './schema'
+  canDrop,
+  cloneNode,
+  detach,
+  doc,
+  find,
+  insert,
+  isDescendant,
+  newNode,
+  type BNode,
+  type Slot,
+} from './doc'
 
-// ───────── 型 ─────────
-export interface BNode {
-  uid: string
-  def: string
-  props: Record<string, any>
-  geometry: BNode | null
-  material: BNode | null
-  children: BNode[]
-  behaviors: BNode[]
-  collapsed?: boolean
-  /** 一時的に無効 (プレビューに出さない) */
-  off?: boolean
-}
-export type Slot = 'children' | 'geometry' | 'material' | 'behaviors'
-export interface Doc {
-  canvas: Record<string, any>
-  children: BNode[]
-}
+// 画面の状態 (ui)・選択・ブロックの編集コマンド。木そのものの操作は doc.ts、取り消しと保存は history.ts
 
-let counter = 0
-export const uid = () => `n${(++counter).toString(36)}${Math.random().toString(36).slice(2, 6)}`
-
-export const doc = reactive<Doc>({ canvas: {}, children: [] })
 export const ui = reactive({
   /** 選択中のブロック (複数のときは最後に選んだもの。インスペクタとギズモの対象) */
   selected: 'canvas' as string,
@@ -116,64 +99,7 @@ export function addTarget(): null | { parent: BNode | null; slot: Slot } {
 }
 export const isSelected = (id: string) => ui.selected === id || ui.sel.includes(id)
 
-// ───────── 検索 ─────────
-export interface Found {
-  node: BNode
-  list: BNode[] | null
-  parent: BNode | null
-  slot: Slot | 'root'
-}
-
-export function find(
-  id: string,
-  nodes: BNode[] = doc.children,
-  parent: BNode | null = null,
-): Found | null {
-  for (const n of nodes) {
-    if (n.uid === id) return { node: n, list: nodes, parent, slot: parent ? 'children' : 'root' }
-    if (n.geometry?.uid === id) return { node: n.geometry, list: null, parent: n, slot: 'geometry' }
-    if (n.material?.uid === id) return { node: n.material, list: null, parent: n, slot: 'material' }
-    const b = n.behaviors.find((x) => x.uid === id)
-    if (b) return { node: b, list: n.behaviors, parent: n, slot: 'behaviors' }
-    const r = find(id, n.children, n)
-    if (r) return r
-  }
-  return null
-}
-
-export function isDescendant(ancestor: BNode, id: string): boolean {
-  return (
-    !!find(id, ancestor.children) ||
-    ancestor.geometry?.uid === id ||
-    ancestor.material?.uid === id ||
-    ancestor.behaviors.some((b) => b.uid === id)
-  )
-}
-
-export function walk(
-  nodes: BNode[],
-  fn: (n: BNode, parent: BNode | null) => void,
-  parent: BNode | null = null,
-) {
-  for (const n of nodes) {
-    fn(n, parent)
-    if (n.geometry) fn(n.geometry, n)
-    if (n.material) fn(n.material, n)
-    n.behaviors.forEach((b) => fn(b, n))
-    walk(n.children, fn, n)
-  }
-}
-
 export const selectedInfo = () => (ui.selected === 'canvas' ? null : find(ui.selected))
-
-/** 形状・素材・動きのブロックは、持ち主 (メッシュなど) のブロックを返す。プレビューで光らせる対象の判定に使う */
-export function hostUid(id: string): string {
-  const f = find(id)
-  if (!f) return ''
-  return f.slot === 'geometry' || f.slot === 'material' || f.slot === 'behaviors'
-    ? (f.parent?.uid ?? '')
-    : f.node.uid
-}
 
 /** ブロックを選び、閉じている親を開いて、ブロック欄で見える位置までスクロールさせる */
 export function revealNode(id: string, mods?: { ctrl?: boolean; shift?: boolean }) {
@@ -257,83 +183,6 @@ export function topSelection(): string[] {
   return ids.filter((id) => !ids.some((o) => o !== id && isDescendant(find(o)!.node, id)))
 }
 
-// ───────── 作成 ─────────
-const SWATCH = [
-  '#5b8def',
-  '#ef6b5b',
-  '#f0b429',
-  '#34b88a',
-  '#b36cf0',
-  '#ee6aa7',
-  '#4cc3d9',
-  '#9aa5b4',
-]
-let swatchIdx = 0
-
-export function newNode(
-  defId: string,
-  overrides: Record<string, any> = {},
-  withAuto = true,
-): BNode {
-  const def = REG[defId]
-  const n: BNode = {
-    uid: uid(),
-    def: defId,
-    props: { ...(def.init ?? {}), ...overrides },
-    geometry: null,
-    material: null,
-    children: [],
-    behaviors: [],
-  }
-  if (withAuto && def.auto) {
-    if (def.auto.geometry) n.geometry = newNode(def.auto.geometry, {}, false)
-    if (def.auto.material) {
-      const extra =
-        def.auto.material === 'three:MeshStandardMaterial'
-          ? { color: SWATCH[swatchIdx++ % SWATCH.length], roughness: 0.45, metalness: 0.1 }
-          : {}
-      n.material = newNode(def.auto.material, extra, false)
-    }
-  }
-  if (def.kind === 'composer') n.props = { ...n.props }
-  return n
-}
-
-export function cloneNode(n: BNode): BNode {
-  const c: BNode = JSON.parse(JSON.stringify(n))
-  const reid = (x: BNode) => {
-    x.uid = uid()
-    x.geometry && reid(x.geometry)
-    x.material && reid(x.material)
-    x.behaviors.forEach(reid)
-    x.children.forEach(reid)
-  }
-  reid(c)
-  return c
-}
-
-// ───────── ドロップ規則 ─────────
-const ROOT_KINDS: Kind[] = [
-  'camera',
-  'controls',
-  'light',
-  'object',
-  'helper',
-  'staging',
-  'world',
-  'composer',
-]
-
-export function canDrop(childDef: BlockDef, parent: BNode | null, slot: Slot): boolean {
-  if (!parent) return slot === 'children' && ROOT_KINDS.includes(childDef.kind)
-  const pd = REG[parent.def]
-  if (slot === 'geometry') return childDef.kind === 'geometry' && !!pd.slots?.geometry
-  if (slot === 'material')
-    return childDef.kind === 'material' && pd.slots?.material === childDef.matFor
-  if (slot === 'behaviors') return childDef.kind === 'behavior' && BEHAVIOR_HOSTS.includes(pd.kind)
-  return !!pd.slots?.children && !!pd.childKinds?.includes(childDef.kind)
-}
-
 /** 追加先を探す。選択中のブロックが入れ物なら中へ、そうでなければ同じ階層、だめなら最上位 */
 export function defaultTarget(childDef: BlockDef): { parent: BNode | null; slot: Slot } {
   const k = childDef.kind
@@ -358,40 +207,6 @@ export function defaultTarget(childDef: BlockDef): { parent: BNode | null; slot:
     }
   }
   return { parent: null, slot: 'children' }
-}
-
-// ───────── 変更操作 ─────────
-function detach(id: string): BNode | null {
-  const f = find(id)
-  if (!f) return null
-  if (f.slot === 'geometry' && f.parent) {
-    f.parent.geometry = null
-    return f.node
-  }
-  if (f.slot === 'material' && f.parent) {
-    f.parent.material = null
-    return f.node
-  }
-  if (f.list) {
-    f.list.splice(f.list.indexOf(f.node), 1)
-    return f.node
-  }
-  return null
-}
-
-export function insert(node: BNode, parent: BNode | null, slot: Slot, index = -1) {
-  if (slot === 'geometry' && parent) {
-    parent.geometry = node
-    return
-  }
-  if (slot === 'material' && parent) {
-    parent.material = node
-    return
-  }
-  const list =
-    slot === 'behaviors' && parent ? parent.behaviors : parent ? parent.children : doc.children
-  if (index < 0 || index > list.length) list.push(node)
-  else list.splice(index, 0, node)
 }
 
 export function addFromPalette(
@@ -539,17 +354,6 @@ export function pasteClip() {
   ui.selected = made[made.length - 1].uid
 }
 
-/** 同じ階層の中で、上 (-1) か下 (+1) へ1つ動かす */
-export function moveSibling(id: string, dir: -1 | 1) {
-  const f = find(id)
-  if (!f || !f.list) return
-  const i = f.list.indexOf(f.node)
-  const j = i + dir
-  if (j < 0 || j >= f.list.length) return
-  f.list.splice(i, 1)
-  f.list.splice(j, 0, f.node)
-}
-
 /** 選択中のブロックを、まとめて無効 / 有効にする */
 export function toggleOffSelected() {
   const nodes = topSelection().map((id) => find(id)!.node)
@@ -558,168 +362,10 @@ export function toggleOffSelected() {
   for (const n of nodes) n.off = to || undefined
 }
 
-export const canRename = (id: string) => {
-  const n = find(id)?.node
-  return !!n && !!REG[n.def]?.propMap.name
-}
-export const nameOf = (n: BNode) =>
-  typeof n.props.name === 'string' && n.props.name ? n.props.name : (REG[n.def]?.label ?? n.def)
-export function renameNode(id: string, name: string) {
-  const n = find(id)?.node
-  const pd = n && REG[n.def]?.propMap.name
-  if (!n || !pd) return
-  const v = name.trim()
-  if (v) n.props.name = v
-  else delete n.props.name
-}
-
-const same = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b)
-
-export function propDefOf(node: BNode | null, key: string): PropDef | undefined {
-  return node ? REG[node.def]?.propMap[key] : CANVAS_PROPS.find((p) => p.key === key)
-}
-
-export function setProp(props: Record<string, any>, def: PropDef, value: any) {
-  if (value === undefined || (same(value, def.def) && def.def !== undefined)) delete props[def.key]
-  else props[def.key] = value
-}
-
-export function resetAll(props: Record<string, any>) {
-  for (const k of Object.keys(props)) delete props[k]
-}
-
+const TOAST_MS = 2200 // 通知を出しておく時間
 let toastTimer: any
 export function flash(msg: string) {
   ui.toast = msg
   clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (ui.toast = ''), 2200)
-}
-
-// ───────── 履歴・保存 ─────────
-const KEY = 'tres-blocks:v1'
-const stack: string[] = []
-let cursor = -1
-const hist = reactive({ cursor: -1, len: 0 })
-const sync = () => {
-  hist.cursor = cursor
-  hist.len = stack.length
-}
-let restoring = false
-let held = false
-let timer: any
-
-const snapshot = () => JSON.stringify({ canvas: doc.canvas, children: doc.children })
-
-export function loadSnapshot(json: string) {
-  const data = JSON.parse(json)
-  restoring = true
-  doc.canvas = data.canvas ?? {}
-  doc.children = data.children ?? []
-  restoring = false
-  if (ui.selected !== 'canvas' && !find(ui.selected)) ui.selected = 'canvas'
-  ui.sel = ui.sel.filter((id) => find(id))
-}
-
-function pushHistory() {
-  const s = snapshot()
-  if (stack[cursor] === s) return
-  stack.length = cursor + 1
-  stack.push(s)
-  if (stack.length > 120) stack.shift()
-  cursor = stack.length - 1
-  sync()
-  try {
-    localStorage.setItem(KEY, s)
-    ui.save.at = Date.now()
-    ui.save.ok = true
-  } catch {
-    ui.save.ok = false /* 保存できない環境 (プライベートモードなど) */
-  }
-}
-function flush() {
-  if (timer) {
-    clearTimeout(timer)
-    timer = null
-    pushHistory()
-  }
-}
-
-/** ギズモのドラッグ中は履歴を止め、離したときに 1 回だけ記録する (途中の位置まで元に戻さないため) */
-export function holdHistory(on: boolean) {
-  held = on
-  if (!on) {
-    clearTimeout(timer)
-    timer = null
-    pushHistory()
-  }
-}
-
-export function undo() {
-  flush()
-  if (cursor > 0) {
-    cursor--
-    sync()
-    loadSnapshot(stack[cursor])
-  }
-}
-export function redo() {
-  flush()
-  if (cursor < stack.length - 1) {
-    cursor++
-    sync()
-    loadSnapshot(stack[cursor])
-  }
-}
-export const canUndo = () => hist.cursor > 0
-export const canRedo = () => hist.cursor < hist.len - 1
-
-export function resetDoc(next: { canvas: Record<string, any>; children: BNode[] }) {
-  flush()
-  doc.canvas = next.canvas
-  doc.children = next.children
-  // 前のブロックに結び付いた一時状態は、すべて捨てる
-  ui.selected = 'canvas'
-  ui.sel = []
-  ui.gizmoUid = ''
-  ui.addTo = null
-  ui.menu = null
-  ui.editing = ''
-  ui.hover = ''
-  ui.drag = null
-  ui.errors = {}
-  pushHistory()
-}
-
-export function initStore(fallback: () => { canvas: Record<string, any>; children: BNode[] }) {
-  let loaded = false
-  try {
-    const raw = localStorage.getItem(KEY)
-    if (raw) {
-      loadSnapshot(raw)
-      loaded = doc.children.length > 0 || Object.keys(doc.canvas).length > 0
-      ui.save.restored = loaded
-    }
-  } catch {
-    /* 読めなければサンプルから始める */
-  }
-  if (!loaded) {
-    const d = fallback()
-    doc.canvas = d.canvas
-    doc.children = d.children
-  }
-  pushHistory()
-  watch(
-    () => snapshot(),
-    () => {
-      if (restoring || held) return
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        timer = null
-        pushHistory()
-      }, 350)
-    },
-    { flush: 'post' },
-  )
-  // 最大の連番を引き継ぐ (複製時の重複を避ける)
-  walk(doc.children, () => counter++)
+  toastTimer = setTimeout(() => (ui.toast = ''), TOAST_MS)
 }

@@ -2,20 +2,16 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { REG } from '../schema'
 import {
-  canRename,
   copySelected,
-  doc,
   duplicateSelected,
-  find,
   hasClip,
-  moveSibling,
   pasteClip,
   removeSelected,
   toggleOffSelected,
   topSelection,
   ui,
-  walk,
 } from '../store'
+import { canRename, doc, find, moveSibling, walk } from '../doc'
 import Ico from './Ico.vue'
 
 const el = ref<HTMLElement | null>(null)

@@ -3,7 +3,6 @@ import { computed, onMounted, ref, watch } from 'vue'
 import type { PropDef } from '../schema'
 import { DEFAULT_TEX, TEX_PRESETS, drawThumb, type TexDesc } from '../textures'
 import { flash } from '../store'
-
 const props = defineProps<{ value: TexDesc | null | undefined; pd: PropDef }>()
 const emit = defineEmits<{ (e: 'set', v: TexDesc | undefined): void }>()
 

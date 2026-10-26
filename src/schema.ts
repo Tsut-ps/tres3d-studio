@@ -1668,6 +1668,3 @@ export const ALL_DEFS = () => Object.values(REG)
 export function defsOfCat(cat: CatId) {
   return ALL_DEFS().filter((d) => d.cat === cat)
 }
-export function propCount(defId: string) {
-  return REG[defId]?.props.length ?? 0
-}

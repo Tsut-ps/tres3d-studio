@@ -1,7 +1,7 @@
 // ブロックの構成から TresJS の Vue SFC を生成する
 import * as THREE from 'three'
 import { REG, CANVAS_MAP, type BlockDef, type PropDef } from './schema'
-import { doc, walk, type BNode } from './store'
+import { doc, walk, type BNode } from './doc'
 import { val, expandAttr } from './SceneNode'
 import type { TexDesc } from './textures'
 import texturesSource from './textures.ts?raw'

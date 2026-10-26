@@ -1,8 +1,8 @@
 import { defineComponent, onBeforeUnmount, onMounted, unref, watch } from 'vue'
 import * as THREE from 'three'
 import { useLoop, useTres } from '@tresjs/core'
-import { find, hostUid, ui } from '../store'
-
+import { ui } from '../store'
+import { find, hostUid } from '../doc'
 /** 自由視点の位置を覚えておく (視点を切り替えて戻ったとき・キャンバスを作り直したときに元の場所へ戻す) */
 export const viewPose: { pos: number[] | null; target: number[] | null; skip: boolean } = {
   pos: null,
