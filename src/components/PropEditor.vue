@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { PropDef } from '../schema'
+import type { PropDef } from '../blocks/schema'
 import TextureEditor from './TextureEditor.vue'
 
 const props = defineProps<{

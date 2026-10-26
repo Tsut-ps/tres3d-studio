@@ -10,10 +10,10 @@ import {
   type PropType,
 } from 'vue'
 import { useLoop } from '@tresjs/core'
-import { REG, type BlockDef } from './schema'
-import { ui, revealNode } from './store'
-import { type BNode } from './doc'
-import { makeTexture, type TexDesc } from './textures'
+import { REG, type BlockDef } from '../blocks/schema'
+import { ui, revealNode } from '../model/store'
+import { type BNode } from '../model/doc'
+import { makeTexture, type TexDesc } from '../blocks/textures'
 import { SafeSoftShadows } from './previewOnly'
 
 /** プレビューのドラッグ (視点操作) の直後にクリック扱いされないよう、Preview が更新する */

@@ -8,7 +8,7 @@ import Preview from './components/Preview.vue'
 import CodeView from './components/CodeView.vue'
 import JsonDialog from './components/JsonDialog.vue'
 import Ico from './components/Ico.vue'
-import { SAMPLES } from './samples'
+import { SAMPLES } from './model/samples'
 import ContextMenu from './components/ContextMenu.vue'
 import {
   copySelected,
@@ -20,12 +20,12 @@ import {
   ui,
   flash,
   visibleOrder,
-} from './store'
-import { canRename, doc, find } from './doc'
-import { canRedo, canUndo, initStore, redo, resetDoc, undo } from './history'
-import { BEHAVIOR_HOSTS, REG } from './schema'
-import { setTextureLoadedHandler } from './textures'
-import { layout, LIMITS, resetLayout } from './layout'
+} from './model/store'
+import { canRename, doc, find } from './model/doc'
+import { canRedo, canUndo, initStore, redo, resetDoc, undo } from './model/history'
+import { BEHAVIOR_HOSTS, REG } from './blocks/schema'
+import { setTextureLoadedHandler } from './blocks/textures'
+import { layout, LIMITS, resetLayout } from './model/layout'
 
 initStore(() => SAMPLES[0].build())
 setTextureLoadedHandler(() => {

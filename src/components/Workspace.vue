@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { CANVAS_MAP } from '../schema'
-import { ui } from '../store'
-import { doc, setProp, walk } from '../doc'
+import { CANVAS_MAP } from '../blocks/schema'
+import { ui } from '../model/store'
+import { doc, setProp, walk } from '../model/doc'
 import BlockView from './BlockView.vue'
 import DropZone from './DropZone.vue'
 import PropEditor from './PropEditor.vue'

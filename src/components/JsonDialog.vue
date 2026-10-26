@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { flash, ui } from '../store'
-import { doc } from '../doc'
-import { resetDoc } from '../history'
+import { flash, ui } from '../model/store'
+import { doc } from '../model/doc'
+import { resetDoc } from '../model/history'
 import Ico from './Ico.vue'
 
 const dlg = ref<HTMLDialogElement | null>(null)

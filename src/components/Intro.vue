@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { addFromPalette, flash, ui } from '../store'
-import { doc, walk } from '../doc'
-import { REG } from '../schema'
+import { addFromPalette, flash, ui } from '../model/store'
+import { doc, walk } from '../model/doc'
+import { REG } from '../blocks/schema'
 import Ico from './Ico.vue'
 
 const KEY = 'tres-blocks:intro'

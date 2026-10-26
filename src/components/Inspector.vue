@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { REG, CANVAS_PROPS, type PropDef } from '../schema'
-import { GROUPS } from '../labels'
-import { ui, flash } from '../store'
-import { doc, find, resetAll, setProp, nameOf } from '../doc'
-import { val } from '../SceneNode'
+import { REG, CANVAS_PROPS, type PropDef } from '../blocks/schema'
+import { GROUPS } from '../blocks/labels'
+import { ui, flash } from '../model/store'
+import { doc, find, resetAll, setProp, nameOf } from '../model/doc'
+import { val } from '../preview/SceneNode'
 import PropEditor from './PropEditor.vue'
 import Ico from './Ico.vue'
-import { iconOf } from '../icons'
+import { iconOf } from '../blocks/icons'
 
 const info = computed(() => (ui.selected === 'canvas' ? null : find(ui.selected)))
 const node = computed(() => info.value?.node ?? null)

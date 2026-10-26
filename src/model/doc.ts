@@ -1,5 +1,12 @@
 import { reactive } from 'vue'
-import { REG, CANVAS_PROPS, BEHAVIOR_HOSTS, type BlockDef, type Kind, type PropDef } from './schema'
+import {
+  REG,
+  CANVAS_PROPS,
+  BEHAVIOR_HOSTS,
+  type BlockDef,
+  type Kind,
+  type PropDef,
+} from '../blocks/schema'
 
 // ブロックの木 (文書) のモデル。画面の状態には触れない。
 // 画面の状態 (選択・ui) は store.ts、取り消しと自動保存は history.ts

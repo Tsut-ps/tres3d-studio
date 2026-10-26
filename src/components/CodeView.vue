@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { generate, type Mark } from '../codegen'
-import { REG } from '../schema'
-import { flash, revealNode, ui } from '../store'
-import { find, nameOf } from '../doc'
-import { layout } from '../layout'
+import { REG } from '../blocks/schema'
+import { flash, revealNode, ui } from '../model/store'
+import { find, nameOf } from '../model/doc'
+import { layout } from '../model/layout'
 import Ico from './Ico.vue'
 
 const root = ref<HTMLElement | null>(null)

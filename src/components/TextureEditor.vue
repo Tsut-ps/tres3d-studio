@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import type { PropDef } from '../schema'
-import { DEFAULT_TEX, TEX_PRESETS, drawThumb, type TexDesc } from '../textures'
-import { flash } from '../store'
+import type { PropDef } from '../blocks/schema'
+import { DEFAULT_TEX, TEX_PRESETS, drawThumb, type TexDesc } from '../blocks/textures'
+import { flash } from '../model/store'
 const props = defineProps<{ value: TexDesc | null | undefined; pd: PropDef }>()
 const emit = defineEmits<{ (e: 'set', v: TexDesc | undefined): void }>()
 

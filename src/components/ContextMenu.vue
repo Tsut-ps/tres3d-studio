@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { REG } from '../schema'
+import { REG } from '../blocks/schema'
 import {
   copySelected,
   duplicateSelected,
@@ -10,8 +10,8 @@ import {
   toggleOffSelected,
   topSelection,
   ui,
-} from '../store'
-import { canRename, doc, find, moveSibling, walk } from '../doc'
+} from '../model/store'
+import { canRename, doc, find, moveSibling, walk } from '../model/doc'
 import Ico from './Ico.vue'
 
 const el = ref<HTMLElement | null>(null)

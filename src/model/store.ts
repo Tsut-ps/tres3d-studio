@@ -1,5 +1,5 @@
 import { reactive, watch } from 'vue'
-import { REG, type BlockDef, type CatId } from './schema'
+import { REG, type BlockDef, type CatId } from '../blocks/schema'
 import {
   canDrop,
   cloneNode,

@@ -7,13 +7,13 @@ createApp(App).mount('#app')
 // 動作確認用 (URL に ?debug を付けたときだけ公開する)
 if (new URLSearchParams(location.search).has('debug')) {
   Promise.all([
-    import('./store'),
-    import('./doc'),
-    import('./history'),
-    import('./schema'),
+    import('./model/store'),
+    import('./model/doc'),
+    import('./model/history'),
+    import('./blocks/schema'),
     import('./codegen'),
-    import('./align'),
-    import('./sceneHandle'),
+    import('./preview/align'),
+    import('./preview/sceneHandle'),
   ]).then(([store, docModel, history, schema, codegen, align, handle]) => {
     ;(window as any).__app = {
       ...store,

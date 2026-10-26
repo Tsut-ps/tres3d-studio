@@ -1,8 +1,8 @@
 import { defineComponent, onBeforeUnmount, unref } from 'vue'
 import * as THREE from 'three'
 import { useLoop, useTres } from '@tresjs/core'
-import { ui } from '../store'
-import { hostUid } from '../doc'
+import { ui } from '../model/store'
+import { hostUid } from '../model/doc'
 /**
  * プレビュー専用の目印。
  * 選択中のブロックは黄色、ホバー中のブロックは水色で、対応する物体を枠や形で示す。
