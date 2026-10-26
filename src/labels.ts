@@ -1,0 +1,92 @@
+// プロパティ名の日本語ラベル。無いものは英語のキーをそのまま表示する。
+export const LABELS: Record<string, string> = {
+  // 変形
+  position: '位置', rotation: '回転', scale: '拡大率', up: '上方向', lookAt: '注視点', pivot: 'ピボット',
+  // 共通
+  name: '名前', visible: '表示', castShadow: '影を落とす', receiveShadow: '影を受ける',
+  frustumCulled: '視錐台カリング', renderOrder: '描画順', matrixAutoUpdate: '行列の自動更新',
+  matrixWorldAutoUpdate: 'ワールド行列の自動更新', userData: 'ユーザーデータ', static: '静的',
+  // 光
+  color: '色', intensity: '強さ', distance: '距離', decay: '減衰', angle: '角度', penumbra: '半影',
+  groundColor: '地面の色', power: 'パワー', width: '幅', height: '高さ', depth: '奥行', radius: '半径',
+  // カメラ
+  fov: '視野角', near: 'ニア面', far: 'ファー面', zoom: 'ズーム', aspect: '縦横比', focus: '焦点',
+  filmGauge: 'フィルム幅', filmOffset: 'フィルムずれ', left: '左', right: '右', top: '上', bottom: '下',
+  // マテリアル
+  opacity: '不透明度', transparent: '透過を使う', wireframe: 'ワイヤーフレーム', flatShading: 'フラットシェード',
+  side: '描画する面', roughness: '粗さ', metalness: '金属度', emissive: '発光色', emissiveIntensity: '発光の強さ',
+  shininess: '光沢', specular: '鏡面反射色', combine: '合成方法', reflectivity: '反射率',
+  clearcoat: 'クリアコート', clearcoatRoughness: 'クリアコートの粗さ', ior: '屈折率', transmission: '透過率',
+  thickness: '厚み', attenuationColor: '減衰色', attenuationDistance: '減衰距離', dispersion: '分散',
+  sheen: 'シーン(布の艶)', sheenColor: '布の艶の色', sheenRoughness: '布の艶の粗さ',
+  iridescence: '虹色効果', iridescenceIOR: '虹色の屈折率', iridescenceThicknessRange: '虹色の厚み範囲',
+  specularIntensity: '鏡面の強さ', specularColor: '鏡面の色', anisotropy: '異方性', anisotropyRotation: '異方性の回転',
+  // マップ
+  map: 'カラーマップ', normalMap: '法線マップ', bumpMap: 'バンプマップ', displacementMap: '変位マップ',
+  roughnessMap: '粗さマップ', metalnessMap: '金属度マップ', alphaMap: 'アルファマップ', aoMap: 'AOマップ',
+  lightMap: 'ライトマップ', emissiveMap: '発光マップ', envMap: '環境マップ', matcap: 'マットキャップ',
+  gradientMap: 'グラデーションマップ', specularMap: '鏡面マップ', clearcoatMap: 'クリアコートマップ',
+  clearcoatNormalMap: 'クリアコート法線', clearcoatRoughnessMap: 'クリアコート粗さマップ',
+  transmissionMap: '透過マップ', thicknessMap: '厚みマップ', sheenColorMap: '布の艶色マップ',
+  sheenRoughnessMap: '布の艶粗さマップ', iridescenceMap: '虹色マップ', iridescenceThicknessMap: '虹色厚みマップ',
+  specularIntensityMap: '鏡面強さマップ', specularColorMap: '鏡面色マップ', anisotropyMap: '異方性マップ',
+  normalScale: '法線の強さ', normalMapType: '法線マップ方式', bumpScale: 'バンプの強さ',
+  displacementScale: '変位の強さ', displacementBias: '変位のオフセット', aoMapIntensity: 'AOの強さ',
+  lightMapIntensity: 'ライトマップの強さ', envMapIntensity: '環境マップの強さ', envMapRotation: '環境マップの回転',
+  // 描画設定
+  blending: 'ブレンド', depthTest: '深度テスト', depthWrite: '深度書き込み', depthFunc: '深度比較',
+  alphaTest: 'アルファテスト', alphaHash: 'アルファハッシュ', alphaToCoverage: 'アルファトゥカバレッジ',
+  polygonOffset: 'ポリゴンオフセット', polygonOffsetFactor: 'オフセット係数', polygonOffsetUnits: 'オフセット単位',
+  colorWrite: 'カラー書き込み', dithering: 'ディザリング', premultipliedAlpha: '乗算済みアルファ',
+  toneMapped: 'トーンマップ適用', fog: 'フォグの影響', vertexColors: '頂点カラー', forceSinglePass: '1パス描画',
+  shadowSide: '影の描画面', clipIntersection: 'クリップ交差', clipShadows: '影をクリップ', precision: '精度',
+  blendEquation: 'ブレンド式', blendSrc: 'ブレンド元係数', blendDst: 'ブレンド先係数',
+  // 線・点
+  linewidth: '線の太さ', linecap: '線の端', linejoin: '線の接続', size: 'サイズ', sizeAttenuation: '距離で縮む',
+  dashSize: '破線の長さ', gapSize: '破線の間隔', rotation_sprite: '回転', center: '中心',
+  // 形状
+  radiusTop: '上の半径', radiusBottom: '下の半径', innerRadius: '内側の半径', outerRadius: '外側の半径',
+  tube: 'チューブ半径', arc: '弧の角度', detail: '細分化', segments: '分割数', widthSegments: '幅の分割',
+  heightSegments: '高さの分割', depthSegments: '奥行の分割', radialSegments: '円周の分割',
+  tubularSegments: '管方向の分割', capSegments: '端の分割', thetaSegments: '角度の分割', phiSegments: '輪の分割',
+  thetaStart: '開始角', thetaLength: '角度の範囲', phiStart: '水平の開始角', phiLength: '水平の範囲',
+  openEnded: '底面を開ける', p: 'p (巻き数)', q: 'q (巻き数)',
+  // シーン設定
+  clearColor: '背景色', clearAlpha: '背景の不透明度', shadows: '影を有効にする', shadowMapType: '影の種類',
+  toneMapping: 'トーンマッピング', toneMappingExposure: '露出', outputColorSpace: '出力の色空間',
+  alpha: '背景を透過', antialias: 'アンチエイリアス', dpr: 'ピクセル比', renderMode: '描画モード',
+  preset: 'プリセット', stencil: 'ステンシル', premultipliedAlphaCanvas: '乗算済みアルファ',
+  preserveDrawingBuffer: '描画バッファを保持', powerPreference: '電力設定', logarithmicDepthBuffer: '対数深度バッファ',
+  failIfMajorPerformanceCaveat: '低性能なら失敗', multisample: 'マルチサンプル',
+  // 部品
+  makeDefault: '標準にする', enableDamping: '慣性', dampingFactor: '慣性の強さ', autoRotate: '自動回転',
+  autoRotateSpeed: '自動回転の速さ', enablePan: 'パン操作', enableZoom: 'ズーム操作', enableRotate: '回転操作',
+  minDistance: '最小距離', maxDistance: '最大距離', minPolarAngle: '最小の仰角', maxPolarAngle: '最大の仰角',
+  minAzimuthAngle: '最小の方位角', maxAzimuthAngle: '最大の方位角', zoomSpeed: 'ズーム速度', rotateSpeed: '回転速度',
+  target: '注視対象', count: '数', speed: '速さ', opacityEffect: '不透明度', blendFunction: '合成方法',
+  luminanceThreshold: '輝度のしきい値', luminanceSmoothing: '輝度のなめらかさ', mipmapBlur: 'ミップマップぼかし',
+  offset: 'オフセット', darkness: '暗さ', technique: '方式', granularity: '粒の大きさ', density: '密度',
+  saturation: '彩度', hue: '色相', delay: '間隔', duration: '持続', strength: '強さ', turbidity: '濁り',
+  rayleigh: 'レイリー散乱', mieCoefficient: 'ミー散乱', mieDirectionalG: 'ミー散乱の方向性', elevation: '太陽の高さ',
+  azimuth: '太陽の方位', blur: 'ぼかし', samples: 'サンプル数', resolution: '解像度', transmissionSampler: '透過サンプラー',
+  chromaticAberration: '色収差', anisotropicBlur: '異方性ぼかし', distortion: '歪み', distortionScale: '歪みの大きさ',
+  temporalDistortion: '時間変化の歪み', backside: '裏面も描画', mix: 'ミックス', factor: '係数', args: '引数',
+  cellSize: 'セルの大きさ', sectionSize: 'セクションの大きさ', cellColor: 'セルの色', sectionColor: 'セクションの色',
+  infiniteGrid: '無限グリッド', fadeDistance: 'フェード距離', followCamera: 'カメラ追従', lifetimeSec: '寿命(秒)',
+  area: '範囲', randomness: 'ランダム性', depthEffect: '深さ',
+}
+
+export const GROUPS: { id: string; label: string }[] = [
+  { id: 'main', label: '基本' },
+  { id: 'geom', label: '形状パラメータ' },
+  { id: 'transform', label: '位置・回転・拡大' },
+  { id: 'look', label: '見た目' },
+  { id: 'light', label: '光' },
+  { id: 'camera', label: 'カメラ' },
+  { id: 'pbr', label: '質感 (PBR)' },
+  { id: 'maps', label: 'テクスチャ・マップ' },
+  { id: 'shadow', label: '影' },
+  { id: 'render', label: '描画設定' },
+  { id: 'advanced', label: '詳細' },
+  { id: 'other', label: 'その他' },
+]
