@@ -1,0 +1,540 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`サンプルの書き出し > からっぽ > App.vue 1`] = `
+"<script setup lang="ts">
+import { TresCanvas } from '@tresjs/core'
+import Scene from './Scene.vue'
+</script>
+
+<template>
+  <TresCanvas window-size clear-color="#171b2e" shadows>
+    <Scene />
+  </TresCanvas>
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > からっぽ > Scene.vue 1`] = `
+"<script setup lang="ts">
+import { OrbitControls } from '@tresjs/cientos'
+</script>
+
+<template>
+    <TresPerspectiveCamera make-default :position="[6, 5, 8]" :look-at="[0, 0, 0]" />
+    <OrbitControls make-default />
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > からっぽ > install 1`] = `"pnpm add three @tresjs/core @tresjs/cientos"`;
+
+exports[`サンプルの書き出し > からっぽ > vite.config.ts 1`] = `
+"import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import templateCompilerOptions from '@tresjs/core/template-compiler-options'
+
+// <TresMesh> などをカスタム要素として扱うための設定
+export default defineConfig({
+  plugins: [vue({ ...templateCompilerOptions })],
+})
+"
+`;
+
+exports[`サンプルの書き出し > はじめの一歩 > App.vue 1`] = `
+"<script setup lang="ts">
+import { TresCanvas } from '@tresjs/core'
+import Scene from './Scene.vue'
+</script>
+
+<template>
+  <TresCanvas window-size clear-color="#171b2e" shadows>
+    <Scene />
+  </TresCanvas>
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > はじめの一歩 > Scene.vue 1`] = `
+"<script setup lang="ts">
+import { shallowRef } from 'vue'
+import { useLoop } from '@tresjs/core'
+import { OrbitControls } from '@tresjs/cientos'
+import StudioEnv from './StudioEnv'
+
+const { onBeforeRender } = useLoop()
+
+const obj1 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj1.value
+  if (!o) return
+  const rot = [0, 0, 0]
+  // くるくる回す
+  rot[1] += 0.8 * elapsed
+  o.rotation.set(rot[0], rot[1], rot[2])
+})
+
+const obj2 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj2.value
+  if (!o) return
+  const pos = [0, 0.9, 0]
+  // 上下にゆらす
+  pos[1] += 0.3 * Math.sin(elapsed * Math.PI * 2 * 0.4 + 0)
+  o.position.set(pos[0], pos[1], pos[2])
+})
+
+const obj3 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj3.value
+  if (!o) return
+  const rot = [0, 0, 0]
+  // くるくる回す
+  rot[0] += 0.3 * elapsed
+  rot[1] += 0.6 * elapsed
+  o.rotation.set(rot[0], rot[1], rot[2])
+})
+</script>
+
+<template>
+  <TresPerspectiveCamera :position="[6, 5, 8]" :look-at="[0, 0, 0]" make-default />
+  <OrbitControls make-default />
+  <TresAmbientLight :intensity="0.5" />
+  <TresDirectionalLight
+    :position="[5, 8, 4]"
+    :intensity="2.5"
+    cast-shadow
+    :shadow-mapSize-x="2048"
+    :shadow-mapSize-y="2048"
+    :shadow-camera-left="-10"
+    :shadow-camera-right="10"
+    :shadow-camera-top="10"
+    :shadow-camera-bottom="-10"
+  />
+  <StudioEnv :intensity="0.6" />
+  <TresMesh :position="[0, 0, 0]" :cast-shadow="false" receive-shadow :rotation="[-1.5708, 0, 0]">
+    <TresPlaneGeometry :args="[30, 30, 1, 1]" />
+    <TresMeshStandardMaterial color="#262c47" :roughness="0.9" />
+  </TresMesh>
+  <TresMesh :position="[-2.2, 0.5, 0]" cast-shadow receive-shadow ref="obj1">
+    <TresBoxGeometry />
+    <TresMeshStandardMaterial color="#ef6b5b" :roughness="0.4" />
+  </TresMesh>
+  <TresMesh :position="[0, 0.9, 0]" cast-shadow receive-shadow ref="obj2">
+    <TresSphereGeometry :args="[0.9, 48, 32, 0, 6.28319, 0, 3.14159]" />
+    <TresMeshPhysicalMaterial
+      color="#5b8def"
+      :roughness="0.1"
+      :metalness="0.2"
+      :clearcoat="1"
+      :clearcoat-roughness="0.1"
+    />
+  </TresMesh>
+  <TresMesh :position="[2.4, 1.1, 0]" cast-shadow receive-shadow ref="obj3">
+    <TresTorusKnotGeometry :args="[0.6, 0.2, 128, 16, 2, 3]" />
+    <TresMeshStandardMaterial color="#f0b429" :roughness="0.2" :metalness="0.9" />
+  </TresMesh>
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > はじめの一歩 > StudioEnv.ts 1`] = `
+"import { defineComponent, onBeforeUnmount, onMounted, unref, watch } from 'vue'
+import * as THREE from 'three'
+import { useTres } from '@tresjs/core'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+
+/**
+ * 通信不要のスタジオ環境光。three.js 付属の RoomEnvironment から環境マップを作り、
+ * scene.environment に設定する。金属やガラスの映り込みに使う。
+ */
+const StudioEnv = defineComponent({
+  name: 'StudioEnv',
+  props: {
+    intensity: { type: Number, default: 1 },
+    background: { type: Boolean, default: false },
+    blurriness: { type: Number, default: 0 },
+    backgroundIntensity: { type: Number, default: 1 },
+  },
+  setup(props) {
+    const ctx: any = useTres()
+    let target: THREE.WebGLRenderTarget | null = null
+    let prevEnv: THREE.Texture | null = null
+    let prevBg: any = null
+
+    const getScene = (): THREE.Scene | undefined => unref(ctx.scene)
+    const getRenderer = (): any => {
+      const r = unref(ctx.renderer)
+      return r?.instance ? unref(r.instance) : r
+    }
+
+    function apply() {
+      const scene: any = getScene()
+      if (!scene || !target) return
+      scene.environment = target.texture
+      scene.environmentIntensity = props.intensity
+      if (props.background) {
+        scene.background = target.texture
+        scene.backgroundBlurriness = props.blurriness
+        scene.backgroundIntensity = props.backgroundIntensity
+      } else if (scene.background === target.texture) {
+        scene.background = prevBg
+      }
+    }
+
+    onMounted(() => {
+      const renderer = getRenderer()
+      const scene: any = getScene()
+      if (!renderer || !scene) return
+      prevEnv = scene.environment
+      prevBg = scene.background
+      const pmrem = new THREE.PMREMGenerator(renderer)
+      const room = new RoomEnvironment()
+      target = pmrem.fromScene(room, 0.04)
+      pmrem.dispose()
+      room.dispose?.()
+      apply()
+    })
+    watch(
+      () => [props.intensity, props.background, props.blurriness, props.backgroundIntensity],
+      apply,
+    )
+    onBeforeUnmount(() => {
+      const scene: any = getScene()
+      if (scene && target) {
+        if (scene.environment === target.texture) scene.environment = prevEnv
+        if (scene.background === target.texture) scene.background = prevBg
+      }
+      target?.dispose()
+    })
+    return () => null
+  },
+})
+
+export default StudioEnv
+"
+`;
+
+exports[`サンプルの書き出し > はじめの一歩 > install 1`] = `"pnpm add three @tresjs/core @tresjs/cientos"`;
+
+exports[`サンプルの書き出し > はじめの一歩 > vite.config.ts 1`] = `
+"import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import templateCompilerOptions from '@tresjs/core/template-compiler-options'
+
+// <TresMesh> などをカスタム要素として扱うための設定
+export default defineConfig({
+  plugins: [vue({ ...templateCompilerOptions })],
+})
+"
+`;
+
+exports[`サンプルの書き出し > ガラスと発光 > App.vue 1`] = `
+"<script setup lang="ts">
+import { TresCanvas } from '@tresjs/core'
+import Scene from './Scene.vue'
+</script>
+
+<template>
+  <TresCanvas window-size clear-color="#050510">
+    <Scene />
+  </TresCanvas>
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > ガラスと発光 > Scene.vue 1`] = `
+"<script setup lang="ts">
+import { shallowRef } from 'vue'
+import { useLoop } from '@tresjs/core'
+import { OrbitControls } from '@tresjs/cientos'
+import { BloomPmndrs, ChromaticAberrationPmndrs, EffectComposerPmndrs, VignettePmndrs } from '@tresjs/post-processing'
+import StudioEnv from './StudioEnv'
+
+const { onBeforeRender } = useLoop()
+
+const obj1 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj1.value
+  if (!o) return
+  const rot = [0, 0, 0]
+  // くるくる回す
+  rot[2] += 0.4 * elapsed
+  o.rotation.set(rot[0], rot[1], rot[2])
+})
+
+const obj2 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj2.value
+  if (!o) return
+  const rot = [0, 0, 0]
+  // くるくる回す
+  rot[0] += 0.2 * elapsed
+  rot[1] += 0.5 * elapsed
+  o.rotation.set(rot[0], rot[1], rot[2])
+})
+</script>
+
+<template>
+  <TresPerspectiveCamera :position="[0, 1.5, 8]" :look-at="[0, 0, 0]" make-default />
+  <OrbitControls make-default auto-rotate :auto-rotate-speed="1.2" />
+  <TresFog :args="['#050510', 8, 30]" attach="fog" />
+  <StudioEnv :intensity="0.8" />
+  <TresPointLight :position="[0, 2, 3]" :intensity="80" :distance="0" :decay="2" color="#7aa2ff" />
+  <TresMesh :position="[0, 0, -2.5]" cast-shadow receive-shadow ref="obj1">
+    <TresTorusGeometry :args="[2.4, 0.12, 12, 96, 6.28319, 0, 6.28319]" />
+    <TresMeshStandardMaterial color="#ff4fa3" emissive="#ff4fa3" :emissive-intensity="2.5" />
+  </TresMesh>
+  <TresMesh :position="[-1.6, 0, 0]" cast-shadow receive-shadow>
+    <TresSphereGeometry :args="[1, 64, 48, 0, 6.28319, 0, 3.14159]" />
+    <TresMeshPhysicalMaterial
+      color="#ffffff"
+      :roughness="0.05"
+      :metalness="0"
+      :transmission="1"
+      :thickness="1.2"
+      :ior="1.5"
+    />
+  </TresMesh>
+  <TresMesh :position="[1.6, 0, 0]" cast-shadow receive-shadow ref="obj2">
+    <TresIcosahedronGeometry :args="[1, 1]" />
+    <TresMeshPhysicalMaterial
+      color="#9fe8ff"
+      :roughness="0.1"
+      :transmission="1"
+      :thickness="1.5"
+      :ior="1.7"
+      :iridescence="1"
+    />
+  </TresMesh>
+  <Suspense>
+    <EffectComposerPmndrs>
+    <BloomPmndrs :intensity="1.2" :luminance-threshold="0.6" mipmap-blur />
+    <VignettePmndrs :darkness="0.6" :offset="0.3" />
+    <ChromaticAberrationPmndrs :offset="[0.0012, 0.0008]" />
+    </EffectComposerPmndrs>
+  </Suspense>
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > ガラスと発光 > StudioEnv.ts 1`] = `
+"import { defineComponent, onBeforeUnmount, onMounted, unref, watch } from 'vue'
+import * as THREE from 'three'
+import { useTres } from '@tresjs/core'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+
+/**
+ * 通信不要のスタジオ環境光。three.js 付属の RoomEnvironment から環境マップを作り、
+ * scene.environment に設定する。金属やガラスの映り込みに使う。
+ */
+const StudioEnv = defineComponent({
+  name: 'StudioEnv',
+  props: {
+    intensity: { type: Number, default: 1 },
+    background: { type: Boolean, default: false },
+    blurriness: { type: Number, default: 0 },
+    backgroundIntensity: { type: Number, default: 1 },
+  },
+  setup(props) {
+    const ctx: any = useTres()
+    let target: THREE.WebGLRenderTarget | null = null
+    let prevEnv: THREE.Texture | null = null
+    let prevBg: any = null
+
+    const getScene = (): THREE.Scene | undefined => unref(ctx.scene)
+    const getRenderer = (): any => {
+      const r = unref(ctx.renderer)
+      return r?.instance ? unref(r.instance) : r
+    }
+
+    function apply() {
+      const scene: any = getScene()
+      if (!scene || !target) return
+      scene.environment = target.texture
+      scene.environmentIntensity = props.intensity
+      if (props.background) {
+        scene.background = target.texture
+        scene.backgroundBlurriness = props.blurriness
+        scene.backgroundIntensity = props.backgroundIntensity
+      } else if (scene.background === target.texture) {
+        scene.background = prevBg
+      }
+    }
+
+    onMounted(() => {
+      const renderer = getRenderer()
+      const scene: any = getScene()
+      if (!renderer || !scene) return
+      prevEnv = scene.environment
+      prevBg = scene.background
+      const pmrem = new THREE.PMREMGenerator(renderer)
+      const room = new RoomEnvironment()
+      target = pmrem.fromScene(room, 0.04)
+      pmrem.dispose()
+      room.dispose?.()
+      apply()
+    })
+    watch(
+      () => [props.intensity, props.background, props.blurriness, props.backgroundIntensity],
+      apply,
+    )
+    onBeforeUnmount(() => {
+      const scene: any = getScene()
+      if (scene && target) {
+        if (scene.environment === target.texture) scene.environment = prevEnv
+        if (scene.background === target.texture) scene.background = prevBg
+      }
+      target?.dispose()
+    })
+    return () => null
+  },
+})
+
+export default StudioEnv
+"
+`;
+
+exports[`サンプルの書き出し > ガラスと発光 > install 1`] = `"pnpm add three @tresjs/core @tresjs/cientos @tresjs/post-processing postprocessing"`;
+
+exports[`サンプルの書き出し > ガラスと発光 > vite.config.ts 1`] = `
+"import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import templateCompilerOptions from '@tresjs/core/template-compiler-options'
+
+// <TresMesh> などをカスタム要素として扱うための設定
+export default defineConfig({
+  plugins: [vue({ ...templateCompilerOptions })],
+})
+"
+`;
+
+exports[`サンプルの書き出し > 惑星の軌道 > App.vue 1`] = `
+"<script setup lang="ts">
+import { TresCanvas } from '@tresjs/core'
+import Scene from './Scene.vue'
+</script>
+
+<template>
+  <TresCanvas window-size clear-color="#03040c">
+    <Scene />
+  </TresCanvas>
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > 惑星の軌道 > Scene.vue 1`] = `
+"<script setup lang="ts">
+import { shallowRef } from 'vue'
+import { useLoop } from '@tresjs/core'
+import { OrbitControls, Stars } from '@tresjs/cientos'
+import { BloomPmndrs, EffectComposerPmndrs } from '@tresjs/post-processing'
+import { DoubleSide } from 'three'
+
+const { onBeforeRender } = useLoop()
+
+const obj1 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj1.value
+  if (!o) return
+  let k = 1
+  // 拡大縮小をくり返す
+  k *= 1 + 0.03 * Math.sin(elapsed * Math.PI * 2 * 0.6)
+  o.scale.set(1 * k, 1 * k, 1 * k)
+})
+
+const obj2 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj2.value
+  if (!o) return
+  const pos = [0, 0.5, 0]
+  // まわりを周回する
+  {
+    const a = elapsed * 1.1 + 0
+    pos[0] = 0; pos[1] = 0; pos[2] = 0
+    pos[0] += Math.cos(a) * 3
+    pos[2] += Math.sin(a) * 3
+  }
+  o.position.set(pos[0], pos[1], pos[2])
+})
+
+const obj3 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj3.value
+  if (!o) return
+  const pos = [0, 0.5, 0]
+  // まわりを周回する
+  {
+    const a = elapsed * 0.7 + 1.5
+    pos[0] = 0; pos[1] = 0; pos[2] = 0
+    pos[0] += Math.cos(a) * 5
+    pos[2] += Math.sin(a) * 5
+  }
+  o.position.set(pos[0], pos[1], pos[2])
+})
+
+const obj4 = shallowRef()
+onBeforeRender(({ elapsed }) => {
+  const o = obj4.value
+  if (!o) return
+  const pos = [0, 0, 0]
+  // まわりを周回する
+  {
+    const a = elapsed * 0.4 + 3
+    pos[0] = 0; pos[1] = 0; pos[2] = 0
+    pos[0] += Math.cos(a) * 8
+    pos[2] += Math.sin(a) * 8
+  }
+  o.position.set(pos[0], pos[1], pos[2])
+})
+</script>
+
+<template>
+  <TresPerspectiveCamera :position="[0, 9, 13]" :look-at="[0, 0, 0]" make-default />
+  <OrbitControls make-default />
+  <Stars :count="4000" :size="0.12" />
+  <TresAmbientLight :intensity="0.15" />
+  <TresPointLight :position="[0, 0, 0]" :intensity="600" :distance="0" :decay="2" color="#ffd27a" />
+  <TresMesh :position="[0, 0, 0]" cast-shadow receive-shadow ref="obj1">
+    <TresSphereGeometry :args="[1.1, 48, 32, 0, 6.28319, 0, 3.14159]" />
+    <TresMeshBasicMaterial color="#ffcf5a" />
+  </TresMesh>
+  <TresMesh :position="[0, 0.5, 0]" cast-shadow receive-shadow ref="obj2">
+    <TresSphereGeometry :args="[0.32, 32, 16, 0, 6.28319, 0, 3.14159]" />
+    <TresMeshStandardMaterial color="#9aa5b4" :roughness="0.8" />
+  </TresMesh>
+  <TresMesh :position="[0, 0.5, 0]" cast-shadow receive-shadow ref="obj3">
+    <TresSphereGeometry :args="[0.5, 32, 16, 0, 6.28319, 0, 3.14159]" />
+    <TresMeshStandardMaterial color="#4cc3d9" :roughness="0.5" />
+  </TresMesh>
+  <TresGroup ref="obj4">
+    <TresMesh :position="[0, 0, 0]" :cast-shadow="false" receive-shadow>
+      <TresSphereGeometry :args="[0.8, 40, 28, 0, 6.28319, 0, 3.14159]" />
+      <TresMeshStandardMaterial color="#f0b429" :roughness="0.6" />
+    </TresMesh>
+    <TresMesh :position="[0, 0, 0]" :cast-shadow="false" receive-shadow :rotation="[-1.1708, 0, 0]">
+      <TresRingGeometry :args="[1.2, 1.9, 64, 1, 0, 6.28319]" />
+      <TresMeshBasicMaterial color="#e7d3a1" :side="DoubleSide" transparent :opacity="0.8" />
+    </TresMesh>
+  </TresGroup>
+  <Suspense>
+    <EffectComposerPmndrs>
+    <BloomPmndrs :intensity="0.9" :luminance-threshold="0.8" mipmap-blur />
+    </EffectComposerPmndrs>
+  </Suspense>
+</template>
+"
+`;
+
+exports[`サンプルの書き出し > 惑星の軌道 > install 1`] = `"pnpm add three @tresjs/core @tresjs/cientos @tresjs/post-processing postprocessing"`;
+
+exports[`サンプルの書き出し > 惑星の軌道 > vite.config.ts 1`] = `
+"import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import templateCompilerOptions from '@tresjs/core/template-compiler-options'
+
+// <TresMesh> などをカスタム要素として扱うための設定
+export default defineConfig({
+  plugins: [vue({ ...templateCompilerOptions })],
+})
+"
+`;
