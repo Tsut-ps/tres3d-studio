@@ -244,7 +244,7 @@ const SKIP_KEYS = new Set([
   'blendAlpha',
 ])
 
-export function groupOf(key: string, kind: Kind): string {
+export function groupOf(key: string, kind: Kind | 'main'): string {
   if (kind === 'geometry') return 'geom'
   if (['position', 'rotation', 'scale', 'up', 'lookAt'].includes(key)) return 'transform'
   if (
@@ -284,7 +284,12 @@ function labelOf(key: string) {
 
 const hex = (c: THREE.Color) => '#' + c.getHexString()
 
-function numberDef(key: string, v: number, kind: Kind, extra: Partial<PropDef> = {}): PropDef {
+function numberDef(
+  key: string,
+  v: number,
+  kind: Kind | 'main',
+  extra: Partial<PropDef> = {},
+): PropDef {
   const isAngle = ANGLE_KEYS.has(key)
   const isInt = INT_RE.test(key)
   const r = RANGES[key]
