@@ -21,11 +21,20 @@ try {
     layout.rightW = Math.max(LIMITS.rightMin, Math.min(1200, s.rightW))
     layout.prevH = Math.max(LIMITS.prevMin, Math.min(LIMITS.prevMax, s.prevH))
   }
-} catch { /* 保存値が読めなければ既定の配置 */ }
+} catch {
+  /* 保存値が読めなければ既定の配置 */
+}
 
-watch(() => [layout.rightW, layout.prevH], () => {
-  try { localStorage.setItem(KEY, JSON.stringify({ rightW: layout.rightW, prevH: layout.prevH })) } catch { /* 保存できなくても動く */ }
-})
+watch(
+  () => [layout.rightW, layout.prevH],
+  () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ rightW: layout.rightW, prevH: layout.prevH }))
+    } catch {
+      /* 保存できなくても動く */
+    }
+  },
+)
 
 export function resetLayout() {
   layout.rightW = DEFAULT_RIGHT_W

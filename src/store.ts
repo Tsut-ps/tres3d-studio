@@ -1,5 +1,13 @@
 import { reactive, watch } from 'vue'
-import { REG, CANVAS_PROPS, BEHAVIOR_HOSTS, type BlockDef, type CatId, type Kind, type PropDef } from './schema'
+import {
+  REG,
+  CANVAS_PROPS,
+  BEHAVIOR_HOSTS,
+  type BlockDef,
+  type CatId,
+  type Kind,
+  type PropDef,
+} from './schema'
 
 // ───────── 型 ─────────
 export interface BNode {
@@ -15,7 +23,10 @@ export interface BNode {
   off?: boolean
 }
 export type Slot = 'children' | 'geometry' | 'material' | 'behaviors'
-export interface Doc { canvas: Record<string, any>; children: BNode[] }
+export interface Doc {
+  canvas: Record<string, any>
+  children: BNode[]
+}
 
 let counter = 0
 export const uid = () => `n${(++counter).toString(36)}${Math.random().toString(36).slice(2, 6)}`
@@ -66,20 +77,35 @@ export const ui = reactive({
 })
 
 // 直接 ui.selected を書き換えた場合も、複数選択の集合を食い違わせない
-watch(() => ui.selected, (v) => {
-  ui.addTo = null // 別のブロックを選んだら、追加先の指定は解く
-  if (v === 'canvas') ui.sel = []
-  else if (!ui.sel.includes(v)) ui.sel = [v]
-}, { flush: 'sync' })
+watch(
+  () => ui.selected,
+  (v) => {
+    ui.addTo = null // 別のブロックを選んだら、追加先の指定は解く
+    if (v === 'canvas') ui.sel = []
+    else if (!ui.sel.includes(v)) ui.sel = [v]
+  },
+  { flush: 'sync' },
+)
 
 /** 追加先を選び、パレットをそれに合う種類へ移す */
 export function startAdd(parent: BNode | null, slot: Slot) {
   ui.addTo = { uid: parent?.uid ?? '', slot }
   const pk = parent ? REG[parent.def].kind : ''
-  ui.palCat = slot === 'geometry' ? 'geometry' : slot === 'material' ? 'material' : slot === 'behaviors' ? 'motion' : pk === 'composer' ? 'effect' : 'object'
+  ui.palCat =
+    slot === 'geometry'
+      ? 'geometry'
+      : slot === 'material'
+        ? 'material'
+        : slot === 'behaviors'
+          ? 'motion'
+          : pk === 'composer'
+            ? 'effect'
+            : 'object'
   ui.addReq++
 }
-export const clearAdd = () => { ui.addTo = null }
+export const clearAdd = () => {
+  ui.addTo = null
+}
 /** 選んだ追加先 (消えていたら null) */
 export function addTarget(): null | { parent: BNode | null; slot: Slot } {
   const a = ui.addTo
@@ -91,9 +117,18 @@ export function addTarget(): null | { parent: BNode | null; slot: Slot } {
 export const isSelected = (id: string) => ui.selected === id || ui.sel.includes(id)
 
 // ───────── 検索 ─────────
-export interface Found { node: BNode; list: BNode[] | null; parent: BNode | null; slot: Slot | 'root' }
+export interface Found {
+  node: BNode
+  list: BNode[] | null
+  parent: BNode | null
+  slot: Slot | 'root'
+}
 
-export function find(id: string, nodes: BNode[] = doc.children, parent: BNode | null = null): Found | null {
+export function find(
+  id: string,
+  nodes: BNode[] = doc.children,
+  parent: BNode | null = null,
+): Found | null {
   for (const n of nodes) {
     if (n.uid === id) return { node: n, list: nodes, parent, slot: parent ? 'children' : 'root' }
     if (n.geometry?.uid === id) return { node: n.geometry, list: null, parent: n, slot: 'geometry' }
@@ -107,10 +142,19 @@ export function find(id: string, nodes: BNode[] = doc.children, parent: BNode | 
 }
 
 export function isDescendant(ancestor: BNode, id: string): boolean {
-  return !!find(id, ancestor.children) || ancestor.geometry?.uid === id || ancestor.material?.uid === id || ancestor.behaviors.some((b) => b.uid === id)
+  return (
+    !!find(id, ancestor.children) ||
+    ancestor.geometry?.uid === id ||
+    ancestor.material?.uid === id ||
+    ancestor.behaviors.some((b) => b.uid === id)
+  )
 }
 
-export function walk(nodes: BNode[], fn: (n: BNode, parent: BNode | null) => void, parent: BNode | null = null) {
+export function walk(
+  nodes: BNode[],
+  fn: (n: BNode, parent: BNode | null) => void,
+  parent: BNode | null = null,
+) {
   for (const n of nodes) {
     fn(n, parent)
     if (n.geometry) fn(n.geometry, n)
@@ -126,7 +170,9 @@ export const selectedInfo = () => (ui.selected === 'canvas' ? null : find(ui.sel
 export function hostUid(id: string): string {
   const f = find(id)
   if (!f) return ''
-  return f.slot === 'geometry' || f.slot === 'material' || f.slot === 'behaviors' ? (f.parent?.uid ?? '') : f.node.uid
+  return f.slot === 'geometry' || f.slot === 'material' || f.slot === 'behaviors'
+    ? (f.parent?.uid ?? '')
+    : f.node.uid
 }
 
 /** ブロックを選び、閉じている親を開いて、ブロック欄で見える位置までスクロールさせる */
@@ -134,8 +180,19 @@ export function revealNode(id: string, mods?: { ctrl?: boolean; shift?: boolean 
   const chain: BNode[] = []
   const dfs = (nodes: BNode[]): boolean => {
     for (const n of nodes) {
-      if (n.uid === id || n.geometry?.uid === id || n.material?.uid === id || n.behaviors.some((b) => b.uid === id)) { chain.push(n); return true }
-      if (dfs(n.children)) { chain.push(n); return true }
+      if (
+        n.uid === id ||
+        n.geometry?.uid === id ||
+        n.material?.uid === id ||
+        n.behaviors.some((b) => b.uid === id)
+      ) {
+        chain.push(n)
+        return true
+      }
+      if (dfs(n.children)) {
+        chain.push(n)
+        return true
+      }
     }
     return false
   }
@@ -168,7 +225,8 @@ export function visibleOrder(): string[] {
 export function selectBlock(id: string, mods: { ctrl?: boolean; shift?: boolean } = {}) {
   if (mods.shift && anchor && find(anchor)) {
     const order = visibleOrder()
-    const a = order.indexOf(anchor), b = order.indexOf(id)
+    const a = order.indexOf(anchor),
+      b = order.indexOf(id)
     if (a >= 0 && b >= 0) {
       ui.sel = order.slice(Math.min(a, b), Math.max(a, b) + 1)
       ui.selected = id
@@ -193,21 +251,47 @@ export function selectBlock(id: string, mods: { ctrl?: boolean; shift?: boolean 
 
 /** 選択中のうち、親も選ばれているものを除いた一覧 (まとめて消す・複製する対象) */
 export function topSelection(): string[] {
-  const ids = (ui.sel.length ? ui.sel : ui.selected !== 'canvas' ? [ui.selected] : []).filter((id) => find(id))
+  const ids = (ui.sel.length ? ui.sel : ui.selected !== 'canvas' ? [ui.selected] : []).filter(
+    (id) => find(id),
+  )
   return ids.filter((id) => !ids.some((o) => o !== id && isDescendant(find(o)!.node, id)))
 }
 
 // ───────── 作成 ─────────
-const SWATCH = ['#5b8def', '#ef6b5b', '#f0b429', '#34b88a', '#b36cf0', '#ee6aa7', '#4cc3d9', '#9aa5b4']
+const SWATCH = [
+  '#5b8def',
+  '#ef6b5b',
+  '#f0b429',
+  '#34b88a',
+  '#b36cf0',
+  '#ee6aa7',
+  '#4cc3d9',
+  '#9aa5b4',
+]
 let swatchIdx = 0
 
-export function newNode(defId: string, overrides: Record<string, any> = {}, withAuto = true): BNode {
+export function newNode(
+  defId: string,
+  overrides: Record<string, any> = {},
+  withAuto = true,
+): BNode {
   const def = REG[defId]
-  const n: BNode = { uid: uid(), def: defId, props: { ...(def.init ?? {}), ...overrides }, geometry: null, material: null, children: [], behaviors: [] }
+  const n: BNode = {
+    uid: uid(),
+    def: defId,
+    props: { ...(def.init ?? {}), ...overrides },
+    geometry: null,
+    material: null,
+    children: [],
+    behaviors: [],
+  }
   if (withAuto && def.auto) {
     if (def.auto.geometry) n.geometry = newNode(def.auto.geometry, {}, false)
     if (def.auto.material) {
-      const extra = def.auto.material === 'three:MeshStandardMaterial' ? { color: SWATCH[swatchIdx++ % SWATCH.length], roughness: 0.45, metalness: 0.1 } : {}
+      const extra =
+        def.auto.material === 'three:MeshStandardMaterial'
+          ? { color: SWATCH[swatchIdx++ % SWATCH.length], roughness: 0.45, metalness: 0.1 }
+          : {}
       n.material = newNode(def.auto.material, extra, false)
     }
   }
@@ -229,13 +313,23 @@ export function cloneNode(n: BNode): BNode {
 }
 
 // ───────── ドロップ規則 ─────────
-const ROOT_KINDS: Kind[] = ['camera', 'controls', 'light', 'object', 'helper', 'staging', 'world', 'composer']
+const ROOT_KINDS: Kind[] = [
+  'camera',
+  'controls',
+  'light',
+  'object',
+  'helper',
+  'staging',
+  'world',
+  'composer',
+]
 
 export function canDrop(childDef: BlockDef, parent: BNode | null, slot: Slot): boolean {
   if (!parent) return slot === 'children' && ROOT_KINDS.includes(childDef.kind)
   const pd = REG[parent.def]
   if (slot === 'geometry') return childDef.kind === 'geometry' && !!pd.slots?.geometry
-  if (slot === 'material') return childDef.kind === 'material' && pd.slots?.material === childDef.matFor
+  if (slot === 'material')
+    return childDef.kind === 'material' && pd.slots?.material === childDef.matFor
   if (slot === 'behaviors') return childDef.kind === 'behavior' && BEHAVIOR_HOSTS.includes(pd.kind)
   return !!pd.slots?.children && !!pd.childKinds?.includes(childDef.kind)
 }
@@ -246,12 +340,21 @@ export function defaultTarget(childDef: BlockDef): { parent: BNode | null; slot:
   const sel = selectedInfo()
   const host = sel?.node
   if (host) {
-    const slotFor: Slot | null = k === 'geometry' ? 'geometry' : k === 'material' ? 'material' : k === 'behavior' ? 'behaviors' : null
+    const slotFor: Slot | null =
+      k === 'geometry'
+        ? 'geometry'
+        : k === 'material'
+          ? 'material'
+          : k === 'behavior'
+            ? 'behaviors'
+            : null
     if (slotFor && canDrop(childDef, host, slotFor)) return { parent: host, slot: slotFor }
-    if (slotFor && sel.parent && canDrop(childDef, sel.parent, slotFor)) return { parent: sel.parent, slot: slotFor }
+    if (slotFor && sel.parent && canDrop(childDef, sel.parent, slotFor))
+      return { parent: sel.parent, slot: slotFor }
     if (!slotFor) {
       if (canDrop(childDef, host, 'children')) return { parent: host, slot: 'children' }
-      if (sel.parent && sel.slot === 'children' && canDrop(childDef, sel.parent, 'children')) return { parent: sel.parent, slot: 'children' }
+      if (sel.parent && sel.slot === 'children' && canDrop(childDef, sel.parent, 'children'))
+        return { parent: sel.parent, slot: 'children' }
     }
   }
   return { parent: null, slot: 'children' }
@@ -261,31 +364,56 @@ export function defaultTarget(childDef: BlockDef): { parent: BNode | null; slot:
 function detach(id: string): BNode | null {
   const f = find(id)
   if (!f) return null
-  if (f.slot === 'geometry' && f.parent) { f.parent.geometry = null; return f.node }
-  if (f.slot === 'material' && f.parent) { f.parent.material = null; return f.node }
-  if (f.list) { f.list.splice(f.list.indexOf(f.node), 1); return f.node }
+  if (f.slot === 'geometry' && f.parent) {
+    f.parent.geometry = null
+    return f.node
+  }
+  if (f.slot === 'material' && f.parent) {
+    f.parent.material = null
+    return f.node
+  }
+  if (f.list) {
+    f.list.splice(f.list.indexOf(f.node), 1)
+    return f.node
+  }
   return null
 }
 
 export function insert(node: BNode, parent: BNode | null, slot: Slot, index = -1) {
-  if (slot === 'geometry' && parent) { parent.geometry = node; return }
-  if (slot === 'material' && parent) { parent.material = node; return }
-  const list = slot === 'behaviors' && parent ? parent.behaviors : parent ? parent.children : doc.children
+  if (slot === 'geometry' && parent) {
+    parent.geometry = node
+    return
+  }
+  if (slot === 'material' && parent) {
+    parent.material = node
+    return
+  }
+  const list =
+    slot === 'behaviors' && parent ? parent.behaviors : parent ? parent.children : doc.children
   if (index < 0 || index > list.length) list.push(node)
   else list.splice(index, 0, node)
 }
 
-export function addFromPalette(defId: string, target?: { parent: BNode | null; slot: Slot; index?: number }): BNode | null {
+export function addFromPalette(
+  defId: string,
+  target?: { parent: BNode | null; slot: Slot; index?: number },
+): BNode | null {
   const def = REG[defId]
   if (!def) return null
   let t = target ?? defaultTarget(def)
   // エフェクトは必ずコンポーザーの中。無ければ作る
   if (def.kind === 'effect' && !(t.parent && REG[t.parent.def].kind === 'composer')) {
     let comp = doc.children.find((n) => REG[n.def].kind === 'composer')
-    if (!comp) { comp = newNode('post:Composer'); doc.children.push(comp) }
+    if (!comp) {
+      comp = newNode('post:Composer')
+      doc.children.push(comp)
+    }
     t = { parent: comp, slot: 'children' }
   }
-  if (!canDrop(def, t.parent, t.slot)) { flash('ここには置けません'); return null }
+  if (!canDrop(def, t.parent, t.slot)) {
+    flash('ここには置けません')
+    return null
+  }
   // 形状・素材は1つだけ。置き換え
   const node = newNode(defId)
   insert(node, t.parent, t.slot, (t as any).index ?? -1)
@@ -298,12 +426,20 @@ export function addFromPalette(defId: string, target?: { parent: BNode | null; s
 export function moveNode(id: string, parent: BNode | null, slot: Slot, index = -1) {
   const f = find(id)
   if (!f) return
-  if (parent && (parent.uid === id || isDescendant(f.node, parent.uid))) { flash('自分の中には移動できません'); return }
-  if (!canDrop(REG[f.node.def], parent, slot)) { flash('ここには置けません'); return }
+  if (parent && (parent.uid === id || isDescendant(f.node, parent.uid))) {
+    flash('自分の中には移動できません')
+    return
+  }
+  if (!canDrop(REG[f.node.def], parent, slot)) {
+    flash('ここには置けません')
+    return
+  }
   // 同じ一覧の中で後ろへ動かすとき、取り除いた分だけ位置がずれる
   let idx = index
   if (f.list && idx >= 0) {
-    const same = (slot === f.slot || (f.slot === 'root' && !parent && slot === 'children')) && f.parent === parent
+    const same =
+      (slot === f.slot || (f.slot === 'root' && !parent && slot === 'children')) &&
+      f.parent === parent
     if (same && f.list.indexOf(f.node) < idx) idx -= 1
   }
   detach(id)
@@ -379,13 +515,21 @@ export function pasteClip() {
     let t: { parent: BNode | null; slot: Slot; index: number } | null = null
     if (sel) {
       const slot = (sel.slot === 'root' ? 'children' : sel.slot) as Slot
-      if (canDrop(def, sel.parent, slot)) t = { parent: sel.parent, slot, index: sel.list ? sel.list.indexOf(sel.node) + 1 + offset : -1 }
+      if (canDrop(def, sel.parent, slot))
+        t = {
+          parent: sel.parent,
+          slot,
+          index: sel.list ? sel.list.indexOf(sel.node) + 1 + offset : -1,
+        }
     }
     if (!t) {
       const d = defaultTarget(def)
       if (canDrop(def, d.parent, d.slot)) t = { ...d, index: -1 }
     }
-    if (!t) { flash('ここには貼り付けできません'); continue }
+    if (!t) {
+      flash('ここには貼り付けできません')
+      continue
+    }
     insert(c, t.parent, t.slot, t.index)
     offset++
     made.push(c)
@@ -414,8 +558,12 @@ export function toggleOffSelected() {
   for (const n of nodes) n.off = to || undefined
 }
 
-export const canRename = (id: string) => { const n = find(id)?.node; return !!n && !!REG[n.def]?.propMap.name }
-export const nameOf = (n: BNode) => (typeof n.props.name === 'string' && n.props.name ? n.props.name : REG[n.def]?.label ?? n.def)
+export const canRename = (id: string) => {
+  const n = find(id)?.node
+  return !!n && !!REG[n.def]?.propMap.name
+}
+export const nameOf = (n: BNode) =>
+  typeof n.props.name === 'string' && n.props.name ? n.props.name : (REG[n.def]?.label ?? n.def)
 export function renameNode(id: string, name: string) {
   const n = find(id)?.node
   const pd = n && REG[n.def]?.propMap.name
@@ -432,7 +580,7 @@ export function propDefOf(node: BNode | null, key: string): PropDef | undefined 
 }
 
 export function setProp(props: Record<string, any>, def: PropDef, value: any) {
-  if (value === undefined || same(value, def.def) && def.def !== undefined) delete props[def.key]
+  if (value === undefined || (same(value, def.def) && def.def !== undefined)) delete props[def.key]
   else props[def.key] = value
 }
 
@@ -452,7 +600,10 @@ const KEY = 'tres-blocks:v1'
 const stack: string[] = []
 let cursor = -1
 const hist = reactive({ cursor: -1, len: 0 })
-const sync = () => { hist.cursor = cursor; hist.len = stack.length }
+const sync = () => {
+  hist.cursor = cursor
+  hist.len = stack.length
+}
 let restoring = false
 let held = false
 let timer: any
@@ -477,18 +628,48 @@ function pushHistory() {
   if (stack.length > 120) stack.shift()
   cursor = stack.length - 1
   sync()
-  try { localStorage.setItem(KEY, s); ui.save.at = Date.now(); ui.save.ok = true } catch { ui.save.ok = false /* 保存できない環境 (プライベートモードなど) */ }
+  try {
+    localStorage.setItem(KEY, s)
+    ui.save.at = Date.now()
+    ui.save.ok = true
+  } catch {
+    ui.save.ok = false /* 保存できない環境 (プライベートモードなど) */
+  }
 }
-function flush() { if (timer) { clearTimeout(timer); timer = null; pushHistory() } }
+function flush() {
+  if (timer) {
+    clearTimeout(timer)
+    timer = null
+    pushHistory()
+  }
+}
 
 /** ギズモのドラッグ中は履歴を止め、離したときに 1 回だけ記録する (途中の位置まで元に戻さないため) */
 export function holdHistory(on: boolean) {
   held = on
-  if (!on) { clearTimeout(timer); timer = null; pushHistory() }
+  if (!on) {
+    clearTimeout(timer)
+    timer = null
+    pushHistory()
+  }
 }
 
-export function undo() { flush(); if (cursor > 0) { cursor--; sync(); loadSnapshot(stack[cursor]) } }
-export function redo() { flush(); if (cursor < stack.length - 1) { cursor++; sync(); loadSnapshot(stack[cursor]) } }
+export function undo() {
+  flush()
+  if (cursor > 0) {
+    cursor--
+    sync()
+    loadSnapshot(stack[cursor])
+  }
+}
+export function redo() {
+  flush()
+  if (cursor < stack.length - 1) {
+    cursor++
+    sync()
+    loadSnapshot(stack[cursor])
+  }
+}
 export const canUndo = () => hist.cursor > 0
 export const canRedo = () => hist.cursor < hist.len - 1
 
@@ -497,7 +678,15 @@ export function resetDoc(next: { canvas: Record<string, any>; children: BNode[] 
   doc.canvas = next.canvas
   doc.children = next.children
   // 前のブロックに結び付いた一時状態は、すべて捨てる
-  ui.selected = 'canvas'; ui.sel = []; ui.gizmoUid = ''; ui.addTo = null; ui.menu = null; ui.editing = ''; ui.hover = ''; ui.drag = null; ui.errors = {}
+  ui.selected = 'canvas'
+  ui.sel = []
+  ui.gizmoUid = ''
+  ui.addTo = null
+  ui.menu = null
+  ui.editing = ''
+  ui.hover = ''
+  ui.drag = null
+  ui.errors = {}
   pushHistory()
 }
 
@@ -505,13 +694,30 @@ export function initStore(fallback: () => { canvas: Record<string, any>; childre
   let loaded = false
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) { loadSnapshot(raw); loaded = doc.children.length > 0 || Object.keys(doc.canvas).length > 0; ui.save.restored = loaded }
-  } catch { /* 読めなければサンプルから始める */ }
-  if (!loaded) { const d = fallback(); doc.canvas = d.canvas; doc.children = d.children }
+    if (raw) {
+      loadSnapshot(raw)
+      loaded = doc.children.length > 0 || Object.keys(doc.canvas).length > 0
+      ui.save.restored = loaded
+    }
+  } catch {
+    /* 読めなければサンプルから始める */
+  }
+  if (!loaded) {
+    const d = fallback()
+    doc.canvas = d.canvas
+    doc.children = d.children
+  }
   pushHistory()
   watch(
     () => snapshot(),
-    () => { if (restoring || held) return; clearTimeout(timer); timer = setTimeout(() => { timer = null; pushHistory() }, 350) },
+    () => {
+      if (restoring || held) return
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        timer = null
+        pushHistory()
+      }, 350)
+    },
     { flush: 'post' },
   )
   // 最大の連番を引き継ぐ (複製時の重複を避ける)

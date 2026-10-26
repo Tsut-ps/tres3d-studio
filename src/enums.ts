@@ -1,7 +1,16 @@
 import * as THREE from 'three'
-import { BlendFunction, KernelSize, ToneMappingMode, VignetteTechnique, GlitchMode } from 'postprocessing'
+import {
+  BlendFunction,
+  KernelSize,
+  ToneMappingMode,
+  VignetteTechnique,
+  GlitchMode,
+} from 'postprocessing'
 
-export interface Opt { label: string; value: any }
+export interface Opt {
+  label: string
+  value: any
+}
 
 const T = (names: string[]): Opt[] =>
   names.map((n) => ({ label: n, value: (THREE as any)[n] })).filter((o) => o.value !== undefined)
@@ -19,21 +28,73 @@ const SIDE = [
   { label: '裏面 BackSide', value: THREE.BackSide },
   { label: '両面 DoubleSide', value: THREE.DoubleSide },
 ]
-const DEPTH_FUNC = T(['NeverDepth', 'AlwaysDepth', 'LessDepth', 'LessEqualDepth', 'EqualDepth', 'GreaterEqualDepth', 'GreaterDepth', 'NotEqualDepth'])
-const BLEND_FACTOR = T([
-  'ZeroFactor', 'OneFactor', 'SrcColorFactor', 'OneMinusSrcColorFactor', 'SrcAlphaFactor', 'OneMinusSrcAlphaFactor',
-  'DstAlphaFactor', 'OneMinusDstAlphaFactor', 'DstColorFactor', 'OneMinusDstColorFactor', 'SrcAlphaSaturateFactor',
-  'ConstantColorFactor', 'OneMinusConstantColorFactor', 'ConstantAlphaFactor', 'OneMinusConstantAlphaFactor',
+const DEPTH_FUNC = T([
+  'NeverDepth',
+  'AlwaysDepth',
+  'LessDepth',
+  'LessEqualDepth',
+  'EqualDepth',
+  'GreaterEqualDepth',
+  'GreaterDepth',
+  'NotEqualDepth',
 ])
-const BLEND_EQ = T(['AddEquation', 'SubtractEquation', 'ReverseSubtractEquation', 'MinEquation', 'MaxEquation'])
-const STENCIL_FUNC = T(['NeverStencilFunc', 'LessStencilFunc', 'EqualStencilFunc', 'LessEqualStencilFunc', 'GreaterStencilFunc', 'NotEqualStencilFunc', 'GreaterEqualStencilFunc', 'AlwaysStencilFunc'])
-const STENCIL_OP = T(['ZeroStencilOp', 'KeepStencilOp', 'ReplaceStencilOp', 'IncrementStencilOp', 'DecrementStencilOp', 'IncrementWrapStencilOp', 'DecrementWrapStencilOp', 'InvertStencilOp'])
+const BLEND_FACTOR = T([
+  'ZeroFactor',
+  'OneFactor',
+  'SrcColorFactor',
+  'OneMinusSrcColorFactor',
+  'SrcAlphaFactor',
+  'OneMinusSrcAlphaFactor',
+  'DstAlphaFactor',
+  'OneMinusDstAlphaFactor',
+  'DstColorFactor',
+  'OneMinusDstColorFactor',
+  'SrcAlphaSaturateFactor',
+  'ConstantColorFactor',
+  'OneMinusConstantColorFactor',
+  'ConstantAlphaFactor',
+  'OneMinusConstantAlphaFactor',
+])
+const BLEND_EQ = T([
+  'AddEquation',
+  'SubtractEquation',
+  'ReverseSubtractEquation',
+  'MinEquation',
+  'MaxEquation',
+])
+const STENCIL_FUNC = T([
+  'NeverStencilFunc',
+  'LessStencilFunc',
+  'EqualStencilFunc',
+  'LessEqualStencilFunc',
+  'GreaterStencilFunc',
+  'NotEqualStencilFunc',
+  'GreaterEqualStencilFunc',
+  'AlwaysStencilFunc',
+])
+const STENCIL_OP = T([
+  'ZeroStencilOp',
+  'KeepStencilOp',
+  'ReplaceStencilOp',
+  'IncrementStencilOp',
+  'DecrementStencilOp',
+  'IncrementWrapStencilOp',
+  'DecrementWrapStencilOp',
+  'InvertStencilOp',
+])
 
 /** プロパティ名で引く選択肢（three.js の整数定数）。 */
 export const ENUM_BY_KEY: Record<string, Opt[]> = {
   side: SIDE,
   shadowSide: [{ label: '自動 (sideと同じ)', value: null }, ...SIDE],
-  blending: T(['NoBlending', 'NormalBlending', 'AdditiveBlending', 'SubtractiveBlending', 'MultiplyBlending', 'CustomBlending']),
+  blending: T([
+    'NoBlending',
+    'NormalBlending',
+    'AdditiveBlending',
+    'SubtractiveBlending',
+    'MultiplyBlending',
+    'CustomBlending',
+  ]),
   depthFunc: DEPTH_FUNC,
   blendEquation: BLEND_EQ,
   blendEquationAlpha: [{ label: '自動 (blendEquationと同じ)', value: null }, ...BLEND_EQ],
@@ -50,8 +111,10 @@ export const ENUM_BY_KEY: Record<string, Opt[]> = {
   normalMapType: T(['TangentSpaceNormalMap', 'ObjectSpaceNormalMap']),
   combine: T(['MultiplyOperation', 'MixOperation', 'AddOperation']),
   precision: [
-    { label: '自動', value: null }, { label: 'highp', value: 'highp' },
-    { label: 'mediump', value: 'mediump' }, { label: 'lowp', value: 'lowp' },
+    { label: '自動', value: null },
+    { label: 'highp', value: 'highp' },
+    { label: 'mediump', value: 'mediump' },
+    { label: 'lowp', value: 'lowp' },
   ],
   // postprocessing 共通
   // SKIP は「効果を外す」と同じ。Grid などで Tres 内部が失敗するので選択肢から除く（ブロックの無効化で代替できる）
@@ -85,15 +148,23 @@ export const CANVAS_ENUMS: Record<string, Opt[]> = {
     { label: 'VSM', value: THREE.VSMShadowMap },
   ],
   outputColorSpace: [
-    { label: 'sRGB', value: 'srgb' }, { label: 'sRGB (linear)', value: 'srgb-linear' }, { label: 'Display P3', value: 'display-p3' },
+    { label: 'sRGB', value: 'srgb' },
+    { label: 'sRGB (linear)', value: 'srgb-linear' },
+    { label: 'Display P3', value: 'display-p3' },
   ],
   renderMode: [
-    { label: '常に描画 always', value: 'always' }, { label: '変化時のみ on-demand', value: 'on-demand' }, { label: '手動 manual', value: 'manual' },
+    { label: '常に描画 always', value: 'always' },
+    { label: '変化時のみ on-demand', value: 'on-demand' },
+    { label: '手動 manual', value: 'manual' },
   ],
   preset: [
-    { label: '指定なし', value: undefined }, { label: 'realistic', value: 'realistic' }, { label: 'flat', value: 'flat' },
+    { label: '指定なし', value: undefined },
+    { label: 'realistic', value: 'realistic' },
+    { label: 'flat', value: 'flat' },
   ],
   powerPreference: [
-    { label: 'default', value: 'default' }, { label: 'high-performance', value: 'high-performance' }, { label: 'low-power', value: 'low-power' },
+    { label: 'default', value: 'default' },
+    { label: 'high-performance', value: 'high-performance' },
+    { label: 'low-power', value: 'low-power' },
   ],
 }

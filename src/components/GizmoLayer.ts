@@ -33,13 +33,19 @@ export default defineComponent({
     let others: { node: BNode; pos: Vec; rot: Vec; sc: Vec }[] = []
     let start = { pos: [0, 0, 0] as Vec, rot: [0, 0, 0] as Vec, sc: [1, 1, 1] as Vec }
 
-    const onKeyChange = (e: KeyboardEvent) => { ctrl = e.ctrlKey || e.metaKey }
-    onMounted(() => { window.addEventListener('keydown', onKeyChange); window.addEventListener('keyup', onKeyChange) })
+    const onKeyChange = (e: KeyboardEvent) => {
+      ctrl = e.ctrlKey || e.metaKey
+    }
+    onMounted(() => {
+      window.addEventListener('keydown', onKeyChange)
+      window.addEventListener('keyup', onKeyChange)
+    })
 
     const cam = () => unref(camera) as THREE.Camera
     function ensure() {
       if (tc) return tc
-      const dom = ((unref(renderer) as any)?.domElement ?? document.querySelector('.prev-canvas canvas')) as HTMLElement
+      const dom = ((unref(renderer) as any)?.domElement ??
+        document.querySelector('.prev-canvas canvas')) as HTMLElement
       if (!dom) return null
       tc = new TransformControls(cam(), dom)
       tc.size = 0.85
@@ -50,8 +56,17 @@ export default defineComponent({
         const c: any = unref(controls)
         if (c) c.enabled = !e.value
         // ギズモのドラッグは、その後のクリックで別のブロックを選んでしまわないよう「動いた」扱いにする
-        if (e.value) { pointerState.moved = true; snapshotStart(); planes = ui.snapObj && tc.mode === 'translate' && obj ? collectPlanes(obj, new Set(ui.sel)) : null }
-        else { planes = null; showGuides([]) }
+        if (e.value) {
+          pointerState.moved = true
+          snapshotStart()
+          planes =
+            ui.snapObj && tc.mode === 'translate' && obj
+              ? collectPlanes(obj, new Set(ui.sel))
+              : null
+        } else {
+          planes = null
+          showGuides([])
+        }
         holdHistory(!!e.value)
       })
       tc.addEventListener('objectChange', onChange)
@@ -59,18 +74,36 @@ export default defineComponent({
     }
 
     const vec = (v: THREE.Vector3 | THREE.Euler): Vec => [r4(v.x), r4(v.y), r4((v as any).z)]
-    const getv = (n: BNode, key: string, fb: Vec): Vec => (Array.isArray(n.props[key]) ? [...n.props[key]] as Vec : (REG[n.def]?.propMap[key]?.def as Vec | undefined) ?? fb)
+    const getv = (n: BNode, key: string, fb: Vec): Vec =>
+      Array.isArray(n.props[key])
+        ? ([...n.props[key]] as Vec)
+        : ((REG[n.def]?.propMap[key]?.def as Vec | undefined) ?? fb)
 
     function snapshotStart() {
       const f = find(uid)
       if (!f) return
-      start = { pos: getv(f.node, 'position', [0, 0, 0]), rot: getv(f.node, 'rotation', [0, 0, 0]), sc: getv(f.node, 'scale', [1, 1, 1]) }
+      start = {
+        pos: getv(f.node, 'position', [0, 0, 0]),
+        rot: getv(f.node, 'rotation', [0, 0, 0]),
+        sc: getv(f.node, 'scale', [1, 1, 1]),
+      }
       // 一緒に選んでいる、同じ親のブロック
       others = ui.sel
         .filter((id) => id !== uid)
         .map((id) => find(id))
-        .filter((o): o is NonNullable<typeof o> => !!o && o.parent === f.parent && o.slot === f.slot && !!REG[o.node.def]?.propMap.position)
-        .map((o) => ({ node: o.node, pos: getv(o.node, 'position', [0, 0, 0]), rot: getv(o.node, 'rotation', [0, 0, 0]), sc: getv(o.node, 'scale', [1, 1, 1]) }))
+        .filter(
+          (o): o is NonNullable<typeof o> =>
+            !!o &&
+            o.parent === f.parent &&
+            o.slot === f.slot &&
+            !!REG[o.node.def]?.propMap.position,
+        )
+        .map((o) => ({
+          node: o.node,
+          pos: getv(o.node, 'position', [0, 0, 0]),
+          rot: getv(o.node, 'rotation', [0, 0, 0]),
+          sc: getv(o.node, 'scale', [1, 1, 1]),
+        }))
     }
 
     function write(n: BNode, key: string, v: Vec) {
@@ -88,16 +121,31 @@ export default defineComponent({
         else if (planes) showGuides([])
         const p = vec(obj.position)
         write(f.node, 'position', p)
-        for (const o of others) write(o.node, 'position', [o.pos[0] + p[0] - start.pos[0], o.pos[1] + p[1] - start.pos[1], o.pos[2] + p[2] - start.pos[2]])
+        for (const o of others)
+          write(o.node, 'position', [
+            o.pos[0] + p[0] - start.pos[0],
+            o.pos[1] + p[1] - start.pos[1],
+            o.pos[2] + p[2] - start.pos[2],
+          ])
       } else if (mode === 'rotate') {
         const r = vec(obj.rotation)
         write(f.node, 'rotation', r)
-        for (const o of others) write(o.node, 'rotation', [o.rot[0] + r[0] - start.rot[0], o.rot[1] + r[1] - start.rot[1], o.rot[2] + r[2] - start.rot[2]])
+        for (const o of others)
+          write(o.node, 'rotation', [
+            o.rot[0] + r[0] - start.rot[0],
+            o.rot[1] + r[1] - start.rot[1],
+            o.rot[2] + r[2] - start.rot[2],
+          ])
       } else {
         const s = vec(obj.scale)
         write(f.node, 'scale', s)
         const k = (a: number, b: number) => (Math.abs(b) < 1e-6 ? 1 : a / b)
-        for (const o of others) write(o.node, 'scale', [o.sc[0] * k(s[0], start.sc[0]), o.sc[1] * k(s[1], start.sc[1]), o.sc[2] * k(s[2], start.sc[2])])
+        for (const o of others)
+          write(o.node, 'scale', [
+            o.sc[0] * k(s[0], start.sc[0]),
+            o.sc[1] * k(s[1], start.sc[1]),
+            o.sc[2] * k(s[2], start.sc[2]),
+          ])
       }
     }
 
@@ -114,15 +162,22 @@ export default defineComponent({
     /** そろえた線を、プレビューに一時的に描く (書き出すコードには入らない) */
     function showGuides(hits: SnapHit[]) {
       const sc = unref(scene) as THREE.Scene
-      if (!hits.length) { if (guides) guides.visible = false; return }
+      if (!hits.length) {
+        if (guides) guides.visible = false
+        return
+      }
       if (!guides) {
-        guides = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ vertexColors: true, depthTest: false, transparent: true }))
+        guides = new THREE.LineSegments(
+          new THREE.BufferGeometry(),
+          new THREE.LineBasicMaterial({ vertexColors: true, depthTest: false, transparent: true }),
+        )
         guides.userData.__helper = true
         guides.renderOrder = 999
         guides.frustumCulled = false
         sc.add(guides)
       }
-      const pos: number[] = [], col: number[] = []
+      const pos: number[] = [],
+        col: number[] = []
       for (const h of hits) {
         const c = new THREE.Color(AXC[h.axis])
         pos.push(h.mine.x, h.mine.y, h.mine.z, h.theirs.x, h.theirs.y, h.theirs.z)
@@ -146,18 +201,30 @@ export default defineComponent({
     onBeforeRender(({ elapsed }) => {
       const sc = unref(scene) as THREE.Scene | undefined
       if (!sc) return
-      sceneHandle.scene = sc; sceneHandle.camera = cam(); sceneHandle.dom = ((unref(renderer) as any)?.domElement ?? null) as HTMLElement | null
-      const want = ui.selected !== 'canvas' && ui.gizmo !== 'off' && eligible(ui.selected) ? ui.selected : ''
-      if (!want) { if (tc) detach(); return }
+      sceneHandle.scene = sc
+      sceneHandle.camera = cam()
+      sceneHandle.dom = ((unref(renderer) as any)?.domElement ?? null) as HTMLElement | null
+      const want =
+        ui.selected !== 'canvas' && ui.gizmo !== 'off' && eligible(ui.selected) ? ui.selected : ''
+      if (!want) {
+        if (tc) detach()
+        return
+      }
       const t = ensure()
       if (!t) return
       t.camera = cam()
-      if (uid !== want || (obj && !obj.parent)) { detach(); uid = want; retryAt = 0 }
+      if (uid !== want || (obj && !obj.parent)) {
+        detach()
+        uid = want
+        retryAt = 0
+      }
       if (!obj) {
         if (elapsed < retryAt) return
         retryAt = elapsed + 0.3
         let found: THREE.Object3D | null = null
-        sc.traverse((o) => { if (!found && !o.userData.__helper && o.userData.__uid === uid) found = o })
+        sc.traverse((o) => {
+          if (!found && !o.userData.__helper && o.userData.__uid === uid) found = o
+        })
         if (!found) return
         // カメラ視点で見ているカメラ自身には、ギズモが出せない (視点そのものなので)
         if (found === cam()) return
@@ -175,9 +242,19 @@ export default defineComponent({
     onBeforeUnmount(() => {
       window.removeEventListener('keydown', onKeyChange)
       window.removeEventListener('keyup', onKeyChange)
-      if (tc) { tc.detach(); root?.removeFromParent(); tc.dispose() }
-      if (guides) { guides.removeFromParent(); guides.geometry.dispose(); (guides.material as THREE.Material).dispose() }
-      sceneHandle.scene = null; sceneHandle.camera = null; sceneHandle.dom = null
+      if (tc) {
+        tc.detach()
+        root?.removeFromParent()
+        tc.dispose()
+      }
+      if (guides) {
+        guides.removeFromParent()
+        guides.geometry.dispose()
+        ;(guides.material as THREE.Material).dispose()
+      }
+      sceneHandle.scene = null
+      sceneHandle.camera = null
+      sceneHandle.dom = null
       ui.gizmoUid = ''
       holdHistory(false)
     })

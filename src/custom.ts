@@ -54,7 +54,10 @@ export const StudioEnv = defineComponent({
       room.dispose?.()
       apply()
     })
-    watch(() => [props.intensity, props.background, props.blurriness, props.backgroundIntensity], apply)
+    watch(
+      () => [props.intensity, props.background, props.blurriness, props.backgroundIntensity],
+      apply,
+    )
     onBeforeUnmount(() => {
       const scene: any = getScene()
       if (scene && target) {

@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { REG } from '../schema'
-import { addFromPalette, canDrop, find, isDescendant, moveNode, startAdd, ui, type BNode, type Slot } from '../store'
+import {
+  addFromPalette,
+  canDrop,
+  find,
+  isDescendant,
+  moveNode,
+  startAdd,
+  ui,
+  type BNode,
+  type Slot,
+} from '../store'
 
 const props = defineProps<{
   parent: BNode | null
@@ -22,12 +32,23 @@ const ok = computed(() => {
   const defId = d.defId ?? dragged?.def
   const def = defId ? REG[defId] : null
   if (!def || !canDrop(def, props.parent, props.at)) return false
-  if (dragged && props.parent && (props.parent.uid === dragged.uid || isDescendant(dragged, props.parent.uid))) return false
+  if (
+    dragged &&
+    props.parent &&
+    (props.parent.uid === dragged.uid || isDescendant(dragged, props.parent.uid))
+  )
+    return false
   // 自分自身のすぐ隣は意味がない
   return true
 })
 const over = ref(false)
-const target = computed(() => !!props.pick && !!ui.addTo && ui.addTo.uid === (props.parent?.uid ?? '') && ui.addTo.slot === props.at)
+const target = computed(
+  () =>
+    !!props.pick &&
+    !!ui.addTo &&
+    ui.addTo.uid === (props.parent?.uid ?? '') &&
+    ui.addTo.slot === props.at,
+)
 
 function onOver(e: DragEvent) {
   if (!ok.value) return
@@ -51,7 +72,16 @@ function onDrop(e: DragEvent) {
 <template>
   <div
     class="dz"
-    :class="{ active: ok, over: over && ok, blocked: !!ui.drag && !ok, wrap, gap, empty: !wrap && !gap, pick, target }"
+    :class="{
+      active: ok,
+      over: over && ok,
+      blocked: !!ui.drag && !ok,
+      wrap,
+      gap,
+      empty: !wrap && !gap,
+      pick,
+      target,
+    }"
     :role="pick ? 'button' : undefined"
     :tabindex="pick ? 0 : undefined"
     @dragover="onOver"

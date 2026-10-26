@@ -19,16 +19,19 @@ export const SafeSoftShadows = defineComponent({
   setup(props, { attrs }) {
     const on = ref(true)
     let token = 0
-    watch(() => props.sig, async () => {
-      const mine = ++token
-      on.value = false
-      await nextTick()
-      await new Promise((r) => setTimeout(r, 0))
-      if (mine !== token) return // 連続変更時は、最後の 1 回だけ付け直す
-      // 内側のコンポーネントが「元のシェーダー」として控えるのは、マウント時点の値。必ず素の状態に戻してから付け直す
-      THREE.ShaderChunk.shadowmap_pars_fragment = PRISTINE_SHADOW_CHUNK
-      on.value = true
-    })
+    watch(
+      () => props.sig,
+      async () => {
+        const mine = ++token
+        on.value = false
+        await nextTick()
+        await new Promise((r) => setTimeout(r, 0))
+        if (mine !== token) return // 連続変更時は、最後の 1 回だけ付け直す
+        // 内側のコンポーネントが「元のシェーダー」として控えるのは、マウント時点の値。必ず素の状態に戻してから付け直す
+        THREE.ShaderChunk.shadowmap_pars_fragment = PRISTINE_SHADOW_CHUNK
+        on.value = true
+      },
+    )
     return () => (on.value ? h(SoftShadows as any, attrs) : null)
   },
 })

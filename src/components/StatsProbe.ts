@@ -13,7 +13,11 @@ export default defineComponent({
     onBeforeRender(({ delta }) => {
       acc += delta
       frames++
-      if (acc >= 0.5) { perf.fps = Math.round(frames / acc); acc = 0; frames = 0 }
+      if (acc >= 0.5) {
+        perf.fps = Math.round(frames / acc)
+        acc = 0
+        frames = 0
+      }
     })
     return () => null
   },
