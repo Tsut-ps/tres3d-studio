@@ -6,6 +6,7 @@ import { flash, revealNode, ui } from '../model/store'
 import { find, nameOf } from '../model/doc'
 import { layout } from '../model/layout'
 import Ico from './Ico.vue'
+import { trackPointer } from '../composables/useInteraction'
 
 const root = ref<HTMLElement | null>(null)
 const lines = ref<HTMLElement | null>(null)
@@ -150,12 +151,7 @@ function grip(e: PointerEvent) {
       Math.min(window.innerHeight * 0.7, Math.max(140, h0 + (y0 - ev.clientY))),
     )
   }
-  const up = () => {
-    window.removeEventListener('pointermove', move)
-    window.removeEventListener('pointerup', up)
-  }
-  window.addEventListener('pointermove', move)
-  window.addEventListener('pointerup', up)
+  trackPointer(window, { move })
 }
 
 function selectAll() {

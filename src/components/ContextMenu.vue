@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { REG } from '../blocks/schema'
 import {
   copySelected,
@@ -13,6 +13,7 @@ import {
 } from '../model/store'
 import { canRename, doc, find, moveSibling, walk } from '../model/doc'
 import Ico from './Ico.vue'
+import { useDismiss, useWindowListener } from '../composables/useInteraction'
 
 const el = ref<HTMLElement | null>(null)
 const pos = ref({ x: 0, y: 0 })
@@ -59,16 +60,9 @@ watch(
     el.value?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus()
   },
 )
-function outside(e: Event) {
-  if (ui.menu && !el.value?.contains(e.target as Node)) close()
-}
+useDismiss(() => !!ui.menu, el, close)
 function key(e: KeyboardEvent) {
   if (!ui.menu) return
-  if (e.key === 'Escape') {
-    e.preventDefault()
-    e.stopPropagation()
-    close()
-  }
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault()
     e.stopPropagation()
@@ -77,18 +71,9 @@ function key(e: KeyboardEvent) {
     bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length]?.focus()
   }
 }
-onMounted(() => {
-  window.addEventListener('pointerdown', outside, true)
-  window.addEventListener('keydown', key, true)
-  window.addEventListener('resize', close)
-  window.addEventListener('blur', close)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('pointerdown', outside, true)
-  window.removeEventListener('keydown', key, true)
-  window.removeEventListener('resize', close)
-  window.removeEventListener('blur', close)
-})
+useWindowListener('keydown', key, true)
+useWindowListener('resize', close)
+useWindowListener('blur', close)
 const label = computed(() => (one.value ? REG[one.value.node.def]?.label : ''))
 </script>
 

@@ -8,6 +8,7 @@ import { val } from '../preview/SceneNode'
 import PropEditor from './PropEditor.vue'
 import Ico from './Ico.vue'
 import { iconOf } from '../blocks/icons'
+import { trackPointer } from '../composables/useInteraction'
 
 const info = computed(() => (ui.selected === 'canvas' ? null : find(ui.selected)))
 const node = computed(() => info.value?.node ?? null)
@@ -87,14 +88,7 @@ function scrub(e: PointerEvent, pd: PropDef) {
     v = pd.type === 'int' ? Math.round(v) : Math.round(v / step) * step
     set(pd, Math.round(v * 1e5) / 1e5)
   }
-  const up = () => {
-    el.removeEventListener('pointermove', move)
-    el.removeEventListener('pointerup', up)
-    el.removeEventListener('pointercancel', up)
-  }
-  el.addEventListener('pointermove', move)
-  el.addEventListener('pointerup', up)
-  el.addEventListener('pointercancel', up)
+  trackPointer(el, { move })
 }
 
 function copyTag() {

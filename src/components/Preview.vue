@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import { computed, provide, ref, watch } from 'vue'
 import { TresCanvas } from '@tresjs/core'
 import { OrbitControls } from '@tresjs/cientos'
 import { ui } from '../model/store'
@@ -13,6 +13,7 @@ import GizmoLayer from '../preview/GizmoLayer'
 import ViewControls, { viewPose } from '../preview/ViewControls'
 import Ico from './Ico.vue'
 import { alignAxis, distributeAxis, dropToFloor, movableCount } from '../preview/align'
+import { useDismiss } from '../composables/useInteraction'
 
 const TOOLS = [
   { id: 'off', label: '選択のみ', key: 'Q', icon: 'cursor' },
@@ -57,44 +58,12 @@ const AXES = [
   { i: 1, k: 'y', name: 'Y', lo: '最小', hi: '最大' },
   { i: 2, k: 'z', name: 'Z', lo: '最小', hi: '最大' },
 ] as const
-const closeAlign = (e: Event) => {
-  if (showAlign.value && !alignEl.value?.contains(e.target as Node)) showAlign.value = false
-}
-const escAlign = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && showAlign.value) {
-    showAlign.value = false
-    e.stopPropagation()
-  }
-}
-onMounted(() => {
-  window.addEventListener('pointerdown', closeAlign, true)
-  window.addEventListener('keydown', escAlign, true)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('pointerdown', closeAlign, true)
-  window.removeEventListener('keydown', escAlign, true)
-})
+useDismiss(showAlign, alignEl, () => (showAlign.value = false))
 
 // 「表示」メニュー (グリッド・座標軸・FPS)。プレビュー専用で、書き出すコードには入らない
 const showMenu = ref(false)
 const menuEl = ref<HTMLElement | null>(null)
-const closeMenu = (e: Event) => {
-  if (showMenu.value && !menuEl.value?.contains(e.target as Node)) showMenu.value = false
-}
-const escMenu = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && showMenu.value) {
-    showMenu.value = false
-    e.stopPropagation()
-  }
-}
-onMounted(() => {
-  window.addEventListener('pointerdown', closeMenu, true)
-  window.addEventListener('keydown', escMenu, true)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('pointerdown', closeMenu, true)
-  window.removeEventListener('keydown', escMenu, true)
-})
+useDismiss(showMenu, menuEl, () => (showMenu.value = false))
 provide(SCENE_INFO, info)
 
 /** 明示的に設定されたものだけを渡す（書き出すコードと同じ条件にするため） */

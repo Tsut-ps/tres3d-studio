@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import type { PropDef } from '../blocks/schema'
 import TextureEditor from './TextureEditor.vue'
+import { trackPointer } from '../composables/useInteraction'
 
 const props = defineProps<{
   pd: PropDef
@@ -111,16 +112,13 @@ function dragNum(
     const unit = fine ? o.step / 10 : o.step
     o.set(r4(Math.round(acc / unit) * unit))
   }
-  const up = () => {
-    window.removeEventListener('pointermove', move)
-    window.removeEventListener('pointerup', up)
-    window.removeEventListener('pointercancel', up)
-    document.body.classList.remove('num-dragging')
-    if (!on) el.select()
-  }
-  window.addEventListener('pointermove', move)
-  window.addEventListener('pointerup', up)
-  window.addEventListener('pointercancel', up)
+  trackPointer(window, {
+    move,
+    end: () => {
+      document.body.classList.remove('num-dragging')
+      if (!on) el.select()
+    },
+  })
 }
 const cast = (n: number) =>
   props.pd.type === 'int' ? Math.round(fromShown(n, angle.value)) : fromShown(n, angle.value)
