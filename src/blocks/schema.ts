@@ -1002,9 +1002,11 @@ function vueDef(opts: {
 }) {
   let props = vueProps(opts.id, opts.comp, opts.defaults ?? {}, opts.overrides ?? {})
   if (opts.withTransform) {
+    // コンポーネント自身が同じ名前の項目を持つとき (ContactShadows の scale など) は、そちらを使う
+    const own = new Set(props.map((p) => p.key))
     props = [
-      ...threeProps(new THREE.Object3D(), 'object', opts.id).filter((p) =>
-        ['position', 'rotation', 'scale', 'visible'].includes(p.key),
+      ...threeProps(new THREE.Object3D(), 'object', opts.id).filter(
+        (p) => ['position', 'rotation', 'scale', 'visible'].includes(p.key) && !own.has(p.key),
       ),
       ...props,
     ]
