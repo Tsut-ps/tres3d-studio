@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { generate, type Mark } from '../codegen'
+import { generate, type Mark } from '../exportCode'
 import { REG } from '../blocks/schema'
 import { flash, revealNode, ui } from '../model/store'
 import { find, nameOf } from '../model/doc'

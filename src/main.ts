@@ -12,17 +12,17 @@ if (new URLSearchParams(location.search).has('debug')) {
     import('./model/history'),
     import('./model/layout'),
     import('./blocks/schema'),
-    import('./codegen'),
+    import('./exportCode'),
     import('./preview/align'),
     import('./preview/sceneHandle'),
-  ]).then(([store, docModel, history, layoutModel, schema, codegen, align, handle]) => {
+  ]).then(([store, docModel, history, layoutModel, schema, exportCode, align, handle]) => {
     ;(window as any).__app = {
       ...store,
       ...docModel,
       ...history,
       ...layoutModel,
       ...schema,
-      generate: codegen.generate,
+      generate: exportCode.generate,
       align,
       sceneHandle: handle.sceneHandle,
     }
