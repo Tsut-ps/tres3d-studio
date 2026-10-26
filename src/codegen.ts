@@ -189,72 +189,123 @@ function openTag(tag: string, attrs: string[], pad: string, selfClose: boolean) 
   return [`${pad}<${tag}`, ...attrs.map((a) => `${pad}  ${a}`), `${pad}${end.trim()}`].join('\n')
 }
 
+/**
+ * 動きブロックから、毎フレーム呼ばれる処理 (onBeforeRender) を作る。
+ * 動くものだけを書き出す: 位置を変える動きが無ければ position は触らない、など。
+ */
 function behaviorScript(n: BNode, refName: string): string {
   const bs = n.behaviors.filter((b) => !b.off)
   const base = (k: string, d: number[]) => val(n, k, d) as number[]
-  const lines: string[] = []
   const P = (b: BNode, k: string) => val(b, k)
-  const AX: any = { x: 0, y: 1, z: 2 }
+  const AX: Record<string, number> = { x: 0, y: 1, z: 2 }
+  const lines: string[] = []
+  // 動きが書き換える項目 (これだけを最後にセットする)
+  let movesPos = false,
+    movesRot = false,
+    movesScale = false
+
   for (const b of bs) {
-    const before = lines.length
+    const code: string[] = []
     switch (b.def) {
       case 'bhv:spin': {
-        const s = P(b, 'speed')
-        lines.push(
-          `  rot[0] += ${num(s[0])} * elapsed; rot[1] += ${num(s[1])} * elapsed; rot[2] += ${num(s[2])} * elapsed`,
-        )
+        // 0 の軸は書かない
+        const speed = P(b, 'speed') as number[]
+        speed.forEach((v, i) => {
+          if (v) code.push(`rot[${i}] += ${num(v)} * elapsed`)
+        })
+        movesRot = true
         break
       }
       case 'bhv:bob':
-        lines.push(
-          `  pos[${AX[P(b, 'axis')]}] += ${num(P(b, 'amplitude'))} * Math.sin(elapsed * Math.PI * 2 * ${num(P(b, 'frequency'))} + ${num(P(b, 'phase'))})`,
+        code.push(
+          `pos[${AX[P(b, 'axis')]}] += ${num(P(b, 'amplitude'))} * Math.sin(elapsed * Math.PI * 2 * ${num(P(b, 'frequency'))} + ${num(P(b, 'phase'))})`,
         )
+        movesPos = true
         break
       case 'bhv:orbit': {
         const [i, j] = P(b, 'plane') === 'xz' ? [0, 2] : P(b, 'plane') === 'xy' ? [0, 1] : [1, 2]
-        const c = P(b, 'center')
-        lines.push(
-          `  { const a = elapsed * ${num(P(b, 'speed'))} + ${num(P(b, 'phase'))}; pos[0] = ${num(c[0])}; pos[1] = ${num(c[1])}; pos[2] = ${num(c[2])}; pos[${i}] += Math.cos(a) * ${num(P(b, 'radius'))}; pos[${j}] += Math.sin(a) * ${num(P(b, 'radius'))} }`,
+        const c = P(b, 'center') as number[]
+        code.push(
+          `const a = elapsed * ${num(P(b, 'speed'))} + ${num(P(b, 'phase'))}`,
+          `pos[0] = ${num(c[0])}; pos[1] = ${num(c[1])}; pos[2] = ${num(c[2])}`,
+          `pos[${i}] += Math.cos(a) * ${num(P(b, 'radius'))}`,
+          `pos[${j}] += Math.sin(a) * ${num(P(b, 'radius'))}`,
         )
+        movesPos = true
         break
       }
       case 'bhv:pulse':
-        lines.push(
-          `  k *= 1 + ${num(P(b, 'amount'))} * Math.sin(elapsed * Math.PI * 2 * ${num(P(b, 'frequency'))})`,
+        code.push(
+          `k *= 1 + ${num(P(b, 'amount'))} * Math.sin(elapsed * Math.PI * 2 * ${num(P(b, 'frequency'))})`,
         )
+        movesScale = true
         break
       case 'bhv:colorCycle':
-        lines.push(
-          `  o.material?.color?.setHSL((elapsed * ${num(P(b, 'speed'))}) % 1, ${num(P(b, 'saturation'))}, ${num(P(b, 'lightness'))})`,
+        code.push(
+          `o.material?.color?.setHSL((elapsed * ${num(P(b, 'speed'))}) % 1, ${num(P(b, 'saturation'))}, ${num(P(b, 'lightness'))})`,
         )
         break
       case 'bhv:hover':
-        lines.push(`  if (${refName}Hover.value) k *= ${num(P(b, 'scale'))}`)
+        code.push(`if (${refName}Hover.value) k *= ${num(P(b, 'scale'))}`)
+        movesScale = true
         break
       case 'bhv:click':
-        if (P(b, 'action') === 'toggleScale')
-          lines.push(`  if (${refName}Toggled.value) k *= ${num(P(b, 'scale'))}`)
+        if (P(b, 'action') === 'toggleScale') {
+          code.push(`if (${refName}Toggled.value) k *= ${num(P(b, 'scale'))}`)
+          movesScale = true
+        }
         break
     }
-    if (lines.length > before) {
-      lines[before] = S(b.uid) + lines[before]
-      lines[lines.length - 1] += E(b.uid)
-    }
+    if (!code.length) continue
+    // 動きごとに見出しのコメントを付け、ブロックの範囲を示す印で囲む
+    // (orbit のように複数行になるものは { } で囲み、変数 a が他と重ならないようにする)
+    const body =
+      code.length > 1 && code[0].startsWith('const ')
+        ? ['{', ...code.map((c) => '  ' + c), '}']
+        : code
+    const chunk = [`// ${REG[b.def].label}`, ...body].map((l) => '  ' + l)
+    chunk[0] = S(b.uid) + chunk[0]
+    chunk[chunk.length - 1] += E(b.uid)
+    lines.push(...chunk)
+  }
+
+  if (!lines.length) return '' // ホバーやジャンプなど、毎フレームの処理が要らないもの
+  const setup: string[] = []
+  if (movesPos) setup.push(`  const pos = ${lit(base('position', [0, 0, 0]))}`)
+  if (movesRot) setup.push(`  const rot = ${lit(base('rotation', [0, 0, 0]))}`)
+  if (movesScale) setup.push(`  let k = 1`)
+  const apply: string[] = []
+  if (movesPos) apply.push(`  o.position.set(pos[0], pos[1], pos[2])`)
+  if (movesRot) apply.push(`  o.rotation.set(rot[0], rot[1], rot[2])`)
+  if (movesScale) {
+    const sc = base('scale', [1, 1, 1])
+    apply.push(`  o.scale.set(${sc.map((v) => `${num(v)} * k`).join(', ')})`)
   }
   return [
     `onBeforeRender(({ elapsed }) => {`,
     `  const o = ${refName}.value`,
     `  if (!o) return`,
-    `  const pos = ${lit(base('position', [0, 0, 0]))}`,
-    `  const rot = ${lit(base('rotation', [0, 0, 0]))}`,
-    `  const sc = ${lit(base('scale', [1, 1, 1]))}`,
-    `  let k = 1`,
+    ...setup,
     ...lines,
-    `  o.position.set(pos[0], pos[1], pos[2])`,
-    `  o.rotation.set(rot[0], rot[1], rot[2])`,
-    `  o.scale.set(sc[0] * k, sc[1] * k, sc[2] * k)`,
+    ...apply,
     `})`,
   ].join('\n')
+}
+
+/** ブロックの名前が英数字ならそれを変数名に使う (sun → sunRef)。そうでなければ obj1, obj2… */
+function refNameOf(n: BNode, ctx: Ctx): string {
+  const words = String(n.props.name ?? '').match(/[A-Za-z0-9]+/g)
+  const taken = new Set(ctx.refs.map((r) => r.name))
+  if (words && /^[A-Za-z]/.test(words[0])) {
+    const camel = words
+      .map((w, i) => (i ? w[0].toUpperCase() + w.slice(1) : w[0].toLowerCase() + w.slice(1)))
+      .join('')
+    for (let i = 0; ; i++) {
+      const name = `${camel}Ref${i ? i + 1 : ''}`
+      if (!taken.has(name)) return name
+    }
+  }
+  return `obj${ctx.refs.length + 1}`
 }
 
 function emit(n: BNode, ctx: Ctx, depth: number, firstCamera: string | null): string[] {
@@ -266,7 +317,7 @@ function emit(n: BNode, ctx: Ctx, depth: number, firstCamera: string | null): st
   const bs = n.behaviors.filter((b) => !b.off)
   let refName = ''
   if (bs.length) {
-    refName = `obj${ctx.refs.length + 1}`
+    refName = refNameOf(n, ctx)
     ctx.refs.push({ name: refName, node: n })
     extra.push(`ref="${refName}"`)
     if (bs.some((b) => b.def === 'bhv:hover'))
@@ -330,7 +381,7 @@ export function generate(): { files: GenFile[]; install: string } {
     ctx.cientos.add('OrbitControls')
     body.push('    <OrbitControls make-default />')
   }
-  const nodes = doc.children.flatMap((n) => emit(n, ctx, 2, firstCamera))
+  const nodes = doc.children.flatMap((n) => emit(n, ctx, 1, firstCamera))
   body.push(...nodes)
 
   // ── スクリプト
@@ -395,7 +446,9 @@ export function generate(): { files: GenFile[]; install: string } {
             `const ${r.name}Click = () => { const o = ${r.name}.value; if (o) { o.position.y += 1; setTimeout(() => (o.position.y -= 1), 350) } }`,
           )
       }
-      script.push(behaviorScript(r.node, r.name) + E(r.node.uid))
+      const frameFn = behaviorScript(r.node, r.name)
+      if (frameFn) script.push(frameFn + E(r.node.uid))
+      else script[script.length - 1] += E(r.node.uid)
     }
   }
 
