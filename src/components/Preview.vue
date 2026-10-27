@@ -24,6 +24,13 @@ const TOOLS = [
   { id: 'scale', label: '拡大', key: 'R', icon: 'scale' },
 ] as const
 
+// 自由視点のカメラの初期位置。
+// テンプレートに直接 [6, 5, 8] と書くと、再描画のたびに新しい配列になり、TresJS が位置を入れ直して、視点が戻ってしまう
+const FREE_CAM_POS: [number, number, number] = [6, 5, 8]
+const ORIGIN: [number, number, number] = [0, 0, 0]
+const GRID_ARGS = [20, 20, '#5a6178', '#39405a']
+const AXES_ARGS = [3]
+
 const showGrid = ref(true)
 const showAxes = ref(false)
 const showFps = ref(true)
@@ -122,13 +129,13 @@ function onMissed() {
         <TresPerspectiveCamera
           v-if="!info.useScene"
           make-default
-          :position="[6, 5, 8]"
-          :look-at="[0, 0, 0]"
+          :position="FREE_CAM_POS"
+          :look-at="ORIGIN"
         />
         <OrbitControls v-if="!info.hasControls && !info.useScene" make-default />
         <SceneNode v-for="n in doc.children" :key="n.uid" :node="n" />
-        <TresGridHelper v-if="showGrid" :args="[20, 20, '#5a6178', '#39405a']" />
-        <TresAxesHelper v-if="showAxes" :args="[3]" />
+        <TresGridHelper v-if="showGrid" :args="GRID_ARGS" />
+        <TresAxesHelper v-if="showAxes" :args="AXES_ARGS" />
         <StatsProbe v-if="showFps" />
         <LoopGuard />
         <RenderFallback />
