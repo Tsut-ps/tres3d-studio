@@ -245,3 +245,12 @@ export function setProp(props: Record<string, any>, def: PropDef, value: any) {
 export function resetAll(props: Record<string, any>) {
   for (const k of Object.keys(props)) delete props[k]
 }
+
+/**
+ * 画面に加わるコンポーザーか。
+ * エフェクトが 1 つも入っていない・enabled が false のコンポーザーは、画面に何も出さず、
+ * プレビューが止まって見える (ライブラリの仕様)。そのため、プレビューにも書き出しにも入れない。
+ */
+export function composerActive(n: BNode): boolean {
+  return n.props.enabled !== false && n.children.some((c) => !c.off)
+}

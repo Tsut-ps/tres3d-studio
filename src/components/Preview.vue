@@ -9,6 +9,7 @@ import { REG, CANVAS_PROPS } from '../blocks/schema'
 import { SceneNode, SCENE_INFO, pointerState } from '../preview/SceneNode'
 import StatsProbe, { perf } from '../preview/StatsProbe'
 import LoopGuard from '../preview/LoopGuard'
+import RenderFallback from '../preview/RenderFallback'
 import HighlightLayer from '../preview/HighlightLayer'
 import GizmoLayer from '../preview/GizmoLayer'
 import ViewControls, { viewPose } from '../preview/ViewControls'
@@ -130,6 +131,7 @@ function onMissed() {
         <TresAxesHelper v-if="showAxes" :args="[3]" />
         <StatsProbe v-if="showFps" />
         <LoopGuard />
+        <RenderFallback />
         <HighlightLayer />
         <GizmoLayer />
         <ViewControls />

@@ -91,3 +91,17 @@ describe('ブロックとコードの行の対応', () => {
     for (const n of doc.children) expect(marked.has(n.uid)).toBe(true)
   })
 })
+
+describe('空のコンポーザー', () => {
+  it('エフェクトが無いコンポーザーは、書き出さない (画面が止まって見えるため)', () => {
+    const c = newNode('post:Composer', {}, false)
+    doc.children.push(c)
+    let code = files().code
+    expect(code).not.toContain('EffectComposerPmndrs')
+    expect(code).toContain('コンポーザーは出力していません')
+    c.children.push(newNode('post:BloomPmndrs', {}, false))
+    code = files().code
+    expect(code).toContain('<EffectComposerPmndrs')
+    expect(code).toContain('<BloomPmndrs')
+  })
+})

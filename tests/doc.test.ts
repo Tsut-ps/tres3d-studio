@@ -3,6 +3,7 @@ import { REG } from '../src/blocks/schema'
 import {
   canDrop,
   cloneNode,
+  composerActive,
   doc,
   find,
   hostUid,
@@ -180,5 +181,20 @@ describe('編集操作 (store)', () => {
     expect(doc.children[1].uid).not.toBe(a.uid)
     expect(doc.children[2].uid).toBe(b.uid)
     expect(ui.selected).toBe(doc.children[1].uid)
+  })
+})
+
+describe('composerActive (画面に加わるコンポーザーか)', () => {
+  it('エフェクトが空、全部オフ、enabled が false のものは、加わらない', () => {
+    const c = newNode('post:Composer', {}, false)
+    expect(composerActive(c)).toBe(false)
+    const fx = newNode('post:BloomPmndrs', {}, false)
+    c.children.push(fx)
+    expect(composerActive(c)).toBe(true)
+    fx.off = true
+    expect(composerActive(c)).toBe(false)
+    fx.off = false
+    c.props.enabled = false
+    expect(composerActive(c)).toBe(false)
   })
 })

@@ -1,7 +1,7 @@
 // ブロックの構成から TresJS の Vue SFC を生成する
 import * as THREE from 'three'
 import { REG, CANVAS_MAP, type BlockDef, type PropDef } from './blocks/schema'
-import { doc, walk, type BNode } from './model/doc'
+import { composerActive, doc, walk, type BNode } from './model/doc'
 import { val, expandAttr } from './preview/SceneNode'
 import type { TexDesc } from './blocks/textures'
 import texturesSource from './blocks/textures.ts?raw'
@@ -312,6 +312,11 @@ function emit(n: BNode, ctx: Ctx, depth: number, firstCamera: string | null): st
   const def = REG[n.def]
   if (!def || n.off) return []
   const pad = '  '.repeat(depth)
+  // 空のコンポーザーは、画面に何も出さず止まって見えるため、出力しない (プレビューと同じ)
+  if (def.kind === 'composer' && !composerActive(n))
+    return mark(n.uid, [
+      `${pad}<!-- エフェクトが入っていないため、コンポーザーは出力していません -->`,
+    ])
   const tag = tagOf(def, ctx)
   const extra: string[] = []
   const bs = n.behaviors.filter((b) => !b.off)
@@ -368,7 +373,7 @@ export function generate(): { files: GenFile[]; install: string } {
     const d = REG[n.def]
     if (d.kind === 'camera' && !firstCamera && !n.off) firstCamera = n.uid
     if (d.kind === 'controls') hasControls = true
-    if (d.kind === 'composer') hasComposer = true
+    if (d.kind === 'composer' && !n.off && composerActive(n)) hasComposer = true
   })
 
   // ── Scene.vue のテンプレート

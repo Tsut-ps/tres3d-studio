@@ -12,7 +12,7 @@ import {
 import { useLoop } from '@tresjs/core'
 import { REG, type BlockDef } from '../blocks/schema'
 import { ui, revealNode } from '../model/store'
-import { type BNode } from '../model/doc'
+import { composerActive, type BNode } from '../model/doc'
 import { makeTexture, type TexDesc } from '../blocks/textures'
 import { SafeSoftShadows } from './previewOnly'
 
@@ -252,6 +252,7 @@ export const SceneNode = defineComponent({
       for (const c of n.children) if (!c.off) kids.push(child(c))
 
       if (def.kind === 'composer') {
+        if (!composerActive(n)) return null
         return h(Suspense, null, { default: () => h(def.comp, attrs, { default: () => kids }) })
       }
 

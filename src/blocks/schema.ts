@@ -1457,6 +1457,7 @@ function effectDefaults(name: string): Record<string, any> {
     primary: ['multisampling'],
     aka: 'effect composer postprocessing',
     desc: 'エフェクトをまとめる入れ物。エフェクトを中に入れる',
+    warn: 'エフェクトが 1 つも入っていない間と、enabled が OFF の間は、画面に加わりません（加えると画面が止まって見えるため）。プレビューにも、書き出すコードにも入りません',
   } as any)
 }
 
