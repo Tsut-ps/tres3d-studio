@@ -8,6 +8,7 @@ import { layout } from '../model/layout'
 import { REG, CANVAS_PROPS } from '../blocks/schema'
 import { SceneNode, SCENE_INFO, pointerState } from '../preview/SceneNode'
 import StatsProbe, { perf } from '../preview/StatsProbe'
+import LoopGuard from '../preview/LoopGuard'
 import HighlightLayer from '../preview/HighlightLayer'
 import GizmoLayer from '../preview/GizmoLayer'
 import ViewControls, { viewPose } from '../preview/ViewControls'
@@ -128,6 +129,7 @@ function onMissed() {
         <TresGridHelper v-if="showGrid" :args="[20, 20, '#5a6178', '#39405a']" />
         <TresAxesHelper v-if="showAxes" :args="[3]" />
         <StatsProbe v-if="showFps" />
+        <LoopGuard />
         <HighlightLayer />
         <GizmoLayer />
         <ViewControls />
