@@ -1,6 +1,8 @@
 {
   "name": "tres3d-studio",
   "compatibility_date": "2026-10-26",
+  // バージョンごとのプレビュー URL は出さない
+  "preview_urls": false,
   "assets": {
     "directory": "./dist"
   }
