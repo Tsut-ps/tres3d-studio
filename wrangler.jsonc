@@ -1,6 +1,7 @@
 {
   "name": "tres3ds",
   "compatibility_date": "2026-10-26",
+  "workers_dev": false,
   // バージョンごとのプレビュー URL は出さない
   "preview_urls": false,
   "assets": {
